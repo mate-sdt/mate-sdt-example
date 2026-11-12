@@ -31,10 +31,10 @@ $$\text{Risk Score} = \text{Business Impact } (1\text{–}5) \times \text{Failur
 | **MOD-02** | **User Login, Locking & TOTP (2FA)** | 5 | 5 | **25** | **P0 (Critical)** | ✅ Yes | `specs/user-login.mate-spec.md` |
 | **MOD-03** | **Product Overview, Search & Filters** | 4 | 4 | **16** | **P0 (Critical)** | ✅ Yes | `specs/product-overview.mate-spec.md` |
 | **MOD-04** | **Product Detail & Add to Cart** | 5 | 4 | **20** | **P0 (Critical)** | ✅ Yes | `specs/product-detail.mate-spec.md` |
-| **MOD-05** | **Checkout – Cart Review & Discounts** | 5 | 4 | **20** | **P0 (Critical)** | ✅ Yes | `specs/checkout-cart.mate-spec.md` |
-| **MOD-06** | **Checkout – Sign In Gate** | 5 | 3 | **15** | **P0 (Critical)** | ✅ Yes | `specs/checkout-auth.mate-spec.md` |
-| **MOD-07** | **Checkout – Billing & Address** | 5 | 3 | **15** | **P0 (Critical)** | ✅ Yes | `specs/checkout-address.mate-spec.md` |
-| **MOD-08** | **Checkout – Payment (Advanced Methods)** | 5 | 5 | **25** | **P0 (Critical)** | ✅ Yes | `specs/checkout-payment.mate-spec.md` |
+| **MOD-05** | **Checkout – Cart Review & Discounts** | 5 | 4 | **20** | **P0 (Critical)** | ✅ Yes | `specs/checkout-lifecycle.mate-spec.md` |
+| **MOD-06** | **Checkout – Sign In Gate** | 5 | 3 | **15** | **P0 (Critical)** | ✅ Yes | `specs/checkout-lifecycle.mate-spec.md` |
+| **MOD-07** | **Checkout – Billing & Address** | 5 | 3 | **15** | **P0 (Critical)** | ✅ Yes | `specs/checkout-lifecycle.mate-spec.md` |
+| **MOD-08** | **Checkout – Payment (Advanced Methods)** | 5 | 5 | **25** | **P0 (Critical)** | ✅ Yes | `specs/checkout-lifecycle.mate-spec.md` |
 | **MOD-09** | **Rental Products & Duration Engine** | 4 | 3 | **12** | **P1 (High)** | ➖ Post-P0 | `specs/rental-products.mate-spec.md` |
 | **MOD-10** | **Two-Factor Auth Setup (2FA)** | 4 | 3 | **12** | **P1 (High)** | ➖ Post-P0 | `specs/two-factor-setup.mate-spec.md` |
 | **MOD-11** | **Customer Profile & Password Change** | 4 | 3 | **12** | **P1 (High)** | ➖ Post-P0 | `specs/customer-profile.mate-spec.md` |
@@ -118,3 +118,14 @@ Following the priority tiers (`P0` ➔ `P1` ➔ `P2`), each module executes the 
 * 🟢 **`[PASS]`**: 100% of `@smoke` and `@p0` invariants pass, zero unflagged regressions, `npx mate-sdt audit` Grade `A`, Stryker mutation score `>= 85%`.
 * 🟡 **`[CONCERNS]`**: Known P2 defects exist; requires signed Release Waiver in `specs/waivers/WVR-*.md`.
 * 🔴 **`[FAIL]`**: Broken P0 invariant, failed account security or payment validation, or missing Wave 1 smoke stability.
+
+---
+
+## 7. Execution Status & Active Test Plans
+
+* **Active Test Plan:** [TP-20261112-P0-P1](./test-plans/TP-20261112-P0-P1.md) (P0 + P1 Wave 2 coverage)
+* **Wave 1:** Complete (21/21 smoke passing).
+* **Wave 2 P0:** MOD-01, 02, 03, 05-08 automated (MOD-05..08 share a single `specs/checkout-lifecycle.mate-spec.md`); MOD-04 next.
+* **Wave 2 P1:** MOD-09 to MOD-15 pending, order by Risk Score (MOD-14 first).
+* **Pillar T / NFR:** Pending (`tests/threats/`, `tests/nfr/`).
+* **CI/CD:** `.github/workflows/mate-qa.yml` pending (`[TBD]` CI platform).
