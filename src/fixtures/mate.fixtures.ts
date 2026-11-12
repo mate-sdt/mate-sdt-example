@@ -25,6 +25,7 @@ export type MateFixtures = {
   navbar: NavbarComponent;
   authApiClient: AuthApiClient;
   authenticatedCustomerPage: Page;
+  authenticatedAdminPage: Page;
 };
 
 export const test = base.extend<MateFixtures>({
@@ -71,6 +72,22 @@ export const test = base.extend<MateFixtures>({
     await expect(page.locator('[data-test="nav-menu"]')).toBeVisible({ timeout: 15000 });
 
     await use(page);
+  },
+
+  authenticatedAdminPage: async ({ browser }, use) => {
+    const adminEmail = process.env.TEST_ADMIN_EMAIL || 'admin@practicesoftwaretesting.com';
+    const adminPassword = process.env.TEST_ADMIN_PASSWORD || 'admin123';
+
+    const context = await browser.newContext();
+    const page = await context.newPage();
+    await page.goto('/auth/login');
+    await page.locator('[data-test="email"]').fill(adminEmail);
+    await page.locator('[data-test="password"]').fill(adminPassword);
+    await page.locator('[data-test="login-submit"]').click();
+    await expect(page.locator('[data-test="nav-menu"]')).toBeVisible({ timeout: 15000 });
+
+    await use(page);
+    await context.close();
   },
 });
 
