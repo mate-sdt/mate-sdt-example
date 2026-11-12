@@ -33,7 +33,7 @@ test.describe('MOD-02: User Login & Session Governance', () => {
 
   test('TC-LOG-03: Invalid Credentials Displays Error Message @p0', async ({ loginPage }) => {
     await loginPage.goto();
-    await loginPage.login('customer@practicesoftwaretesting.com', 'IncorrectPassword999!');
+    await loginPage.login('nonexistent.customer@practicesoftwaretesting.com', 'IncorrectPassword999!');
 
     // AC3 / INV-02: Generic error displayed
     await loginPage.assertErrorMessage('Invalid email or password');

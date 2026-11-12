@@ -23,7 +23,7 @@ test.describe('MOD-01 & MOD-02: Authentication API Contracts @api', () => {
 
   test('API-AUTH-02: Invalid Credentials Contract (HTTP 401)', async ({ authApiClient }) => {
     const response = await authApiClient.login({
-      email: 'customer@practicesoftwaretesting.com',
+      email: 'nonexistent.customer@practicesoftwaretesting.com',
       password: 'IncorrectPassword999!',
     });
 
