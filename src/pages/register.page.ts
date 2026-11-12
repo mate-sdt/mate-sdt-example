@@ -97,4 +97,10 @@ export class RegisterPage extends BasePage {
     await expect(this.errorMessage.first()).toBeVisible({ timeout: 10000 });
     await expect(this.errorMessage.first()).toContainText(/already in use|already exists/i);
   }
+
+  async assertDuplicateEmailErrorStrict(): Promise<void> {
+    await expect(this.errorMessage.first()).toBeVisible({ timeout: 10000 });
+    // AC-06 mandated text: "Email is already in use."
+    await expect(this.errorMessage.first()).toContainText('Email is already in use.');
+  }
 }

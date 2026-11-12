@@ -71,6 +71,12 @@ test.describe('MOD-01: User Registration & Password Strength', () => {
   });
 
   test('TC-REG-06: Duplicate Email Registration Rejection @p0', async ({ registerPage }) => {
+    // M.A.T.E. Anti-Greenwashing Mandate:
+    // AC-06 mandates error copy: "Email is already in use."
+    // Live UI actually displays: "A customer with this email address already exists."
+    // We preserve the true assertion and annotate with test.fail() linked to BUG-20261112-USER-REGISTRATION-01.
+    test.fail(true, 'BUG-20261112-USER-REGISTRATION-01: UI displays "A customer with this email address already exists." instead of specified "Email is already in use."');
+
     await registerPage.goto();
     await registerPage.fillForm({
       firstName: 'Jane',
@@ -89,8 +95,8 @@ test.describe('MOD-01: User Registration & Password Strength', () => {
 
     await registerPage.submit();
 
-    // AC5 / INV-04: "Email is already in use."
-    await registerPage.assertDuplicateEmailError();
+    // AC-06 / INV-04 strict expectation: "Email is already in use."
+    await registerPage.assertDuplicateEmailErrorStrict();
   });
 
 });

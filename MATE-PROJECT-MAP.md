@@ -128,5 +128,7 @@ Non-negotiable mathematical and business rules that must never be violated under
 - **Test Suite Health Score:** `A` (100/100 across 19 files verified via `npx mate-sdt audit`)
 - **Podman Mutation Engine:** `Configured` (`stryker.config.json`, threshold `>= 85%`)
 - **Active Release Waivers:** `None` (`./specs/waivers/`)
+- **Tracked Known Defects (`test.fail` Anti-Greenwashing):**
+  - `BUG-20261112-USER-REGISTRATION-01` (`./tests/bugs/BUG-20261112-user-registration.md`): Duplicate registration error message copy mismatch against Acceptance Criteria AC-06 (`"A customer with this email address already exists."` vs specified `"Email is already in use."`). Guarded by `test.fail(true)` in `tests/e2e/auth-registration.spec.ts` (`TC-REG-06`).
 - **Identified Gaps & Flakiness Radar:**
-  - *MOD-01, MOD-02, and MOD-05..MOD-08 fully automated with 100% AC traceability and 4-quadrant matrices. All 16 E2E tests and 4 API contract tests pass cleanly. Next priority in Wave 2: MOD-03 (Search & Filters) & MOD-04 (Product Detail & Add to Cart).*
+  - *MOD-01, MOD-02, and MOD-05..MOD-08 fully automated with 100% AC traceability and 4-quadrant matrices. All 16 E2E tests and 4 API contract tests pass cleanly with 1 expected defect captured via test.fail(). Next priority in Wave 2: MOD-03 (Search & Filters) & MOD-04 (Product Detail & Add to Cart).*
