@@ -14,6 +14,15 @@ description: >-
 
 This skill governs **Phase 1 of `@playwright/cli` in M.A.T.E.**: using the browser from the command line to **explore, verify User Stories in real time, test border cases interactively, and map semantic DOM/ARIA elements** before writing a single line of automated test code.
 
+> [!IMPORTANT]
+> **Tool-First Grounding (Zero Reasoning Speculation):**  
+> When operating on frontier reasoning models (e.g., Claude 5.5 with Extended Thinking, OpenAI GPT-6, DeepSeek V4), **NEVER burn reasoning/thinking tokens trying to deduce or guess DOM selectors, CSS classes, or component hierarchies in internal thoughts.**  
+> **Invoke `@playwright/cli` (`open`, `snapshot`, `eval`) immediately.** Every locator and assertion must be grounded on live accessibility snapshots, not internal speculation.
+>
+> **The Discrepancy Escalation Gate (Never Adapt Silently):**  
+> If during `@playwright/cli` live exploration you discover ANY mismatch with the User Story (e.g. an undocumented mandatory field like `house_number`, differing error message copy, unexpected state reset, or account lockout):  
+> **STOP IMMEDIATELY.** Do NOT unilaterally patch Page Objects, use permissive regexes, or bypass flows with silent workarounds. Ask the human engineer whether the behavior represents a Defect (`test.fail()`) or an intentional Specification Update before proceeding.
+
 ---
 
 ## 🔗 Skill Synergy & Handoff Protocol
@@ -69,7 +78,7 @@ Before automating a User Story (`mate-story-testcases`), walk through the critic
    - Test boundary values (`0`, negative numbers, max length + 1, empty strings, special characters) directly via `playwright-cli fill`.
    - Verify whether the UI displays accessible error messages (`role="alert"`, `aria-invalid="true"`).
 3. **Record Honest Observations (`PASS` vs `FAIL`):**
-   - Update the `Live CLI Check` column in `tests/cases/TC-[module].md` and `.csv`.
+   - Update the `Live CLI Check` column in `docs/test-cases/TC-[module].md` and `.csv`.
    - **CRITICAL:** If a border case or acceptance criterion **fails** in the live browser (e.g., applying a 100% discount results in `-10` or a `500` error), mark it as `❌ FAIL (BUG-XXX)` and pass it to `mate-pw-codegen` + `mate-assert-playwright` so the automated test is **still created** with `test.fail()`!
 
 ---

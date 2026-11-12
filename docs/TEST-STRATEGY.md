@@ -15,7 +15,7 @@
 This Master Test Strategy governs the quality engineering architecture for **Practice Software Testing (Toolshop v5.0)** using the **M.A.T.E. Method (Spec-Driven Testing Framework)**.
 
 * **Primary Objective:** Build a robust, scalable, Object-Oriented (OOP/SOLID) test automation framework in TypeScript with Playwright to achieve 100% specification traceability across all Sprint 5 user stories.
-* **Anti-Greenwashing Mandate:** The User Stories (`v5.md`) and formalized specifications (`*.mate-spec.md`) are the source of truth—never the live application when it misbehaves. If a test fails against the live website due to an application bug, **the test is preserved with its true expected assertion**, annotated with `test.fail(true, 'BUG-XXX: ...')`, and documented in `tests/bugs/BUG-*.md`. We never weaken assertions or delete tests to produce fake green dashboards.
+* **Anti-Greenwashing Mandate:** The User Stories (`v5.md`) and formalized specifications (`*.mate-spec.md`) are the source of truth—never the live application when it misbehaves. If a test fails against the live website due to an application bug, **the test is preserved with its true expected assertion**, annotated with `test.fail(true, 'BUG-XXX: ...')`, and documented in `docs/bugs/BUG-*.md`. We never weaken assertions or delete tests to produce fake green dashboards.
 * **Execution Paradigm:** Two-Wave rollout—Wave 1 builds an immediate P0 Smoke Survival Shield across critical user journeys; Wave 2 deepens coverage module-by-module across all 4 quadrants (Happy, Border, Negative, and Forbidden State Transitions).
 
 ---
@@ -67,7 +67,7 @@ $$\text{Risk Score} = \text{Business Impact } (1\text{–}5) \times \text{Failur
 ### Wave 2: Module-by-Module 4-Quadrant Deepening
 Following the priority tiers (`P0` ➔ `P1` ➔ `P2`), each module executes the standardized M.A.T.E. engineering loop:
 1. **Model (`mate-model`):** Author `specs/[module].mate-spec.md` with Finite State Machine, Invariants, and Explicit Forbidden Transitions. Validate with `npx mate-sdt validate`.
-2. **QA Companion (`mate-story-testcases`):** Generate `tests/cases/TC-[module].md` and `.csv` covering:
+2. **QA Companion (`mate-story-testcases`):** Generate `docs/test-cases/TC-[module].md` and `.csv` covering:
    - `HAPPY_PATH` (standard successful user flows)
    - `BORDER_CASE` (boundary values, min/max characters, price edge cases)
    - `NEGATIVE_PATH` (invalid formats, missing required fields, 4xx responses)

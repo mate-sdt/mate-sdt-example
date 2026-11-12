@@ -15,7 +15,7 @@
 This Master Test Strategy governs the end-to-end quality engineering process for **[Project Name]** under the **M.A.T.E. Method (Spec-Driven Testing Framework)**.
 
 * **Primary Objective:** Protect business-critical user journeys and domain invariants while maintaining a fast, deterministic, zero-flakiness automated suite (`Grade A` on `npx mate-sdt audit`).
-* **Anti-Greenwashing Policy:** Tests validate **what the specification and User Stories require**, never what buggy implementation code happens to do. Any test that fails due to a real application defect is kept in the suite, annotated with `test.fail(true, 'BUG-XXX')`, and tracked in `tests/bugs/`.
+* **Anti-Greenwashing Policy:** Tests validate **what the specification and User Stories require**, never what buggy implementation code happens to do. Any test that fails due to a real application defect is kept in the suite, annotated with `test.fail(true, 'BUG-XXX')`, and tracked in `docs/bugs/`.
 
 ---
 
@@ -41,7 +41,7 @@ This Master Test Strategy governs the end-to-end quality engineering process for
 ### Wave 2: Incremental 4-Quadrant M.A.T.E. Deepening
 For each module in priority order (`P0` ➔ `P1` ➔ `P2`):
 1. **Model (`mate-model`):** Author `specs/[module].mate-spec.md` with explicit Forbidden Transitions.
-2. **Test Cases (`mate-story-testcases`):** Generate `tests/cases/TC-[module].md` and `.csv` covering `HAPPY_PATH`, `BORDER_CASE`, `NEGATIVE_PATH`, and `STATE_TRANSITION`.
+2. **Test Cases (`mate-story-testcases`):** Generate `docs/test-cases/TC-[module].md` and `.csv` covering `HAPPY_PATH`, `BORDER_CASE`, `NEGATIVE_PATH`, and `STATE_TRANSITION`.
 3. **Assert (`mate-assert-playwright` / `mate-assert-api`):** Automate UI and API suites.
 4. **Threat & Performance (`mate-threat` / `mate-performance-k6`):** Add concurrency, fuzzing, and k6 load scripts.
 5. **Explore (`mate-explore`):** Execute 30–60 min human SBTM charters (`tests/charters/`).

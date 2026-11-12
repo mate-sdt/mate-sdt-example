@@ -25,7 +25,7 @@ When a QA team lands in a project—especially when working in a **standalone QA
 | :--- | :--- | :--- |
 | **Companion (Discovery)** | **`mate-pw-recon` & `mate-core`** | Uses `@playwright/cli` (`open`, `snapshot`, `network`) to crawl the live application, inventory all business modules and hidden API endpoints, and populate `MATE-PROJECT-MAP.md`. |
 | **Downstream (Wave 1: Smoke)** | **`mate-assert-playwright` & `mate-pw-codegen`** | Automates the **Wave 1 P0 Smoke Suite (`@smoke @p0`)** covering the 5–10 critical Golden Paths that keep the business alive in production. |
-| **Downstream (Wave 2: Depth)** | **`mate-story-testcases` & `mate-model`** | Iterates module by module in priority order (`P0` ➔ `P1` ➔ `P2`) to create formal `specs/*.mate-spec.md` and 4-Quadrant Test Case Matrices (`tests/cases/TC-*.md` & `.csv`). |
+| **Downstream (Wave 2: Depth)** | **`mate-story-testcases` & `mate-model`** | Iterates module by module in priority order (`P0` ➔ `P1` ➔ `P2`) to create formal `specs/*.mate-spec.md` and 4-Quadrant Test Case Matrices (`docs/test-cases/TC-*.md` & `.csv`). |
 | **Downstream (Rescue)** | **`mate-maintenance` & `mate-triage`** | When the team already has legacy flaky tests or manual Excel sheets, coordinates the audit, deduplication, and incremental migration. |
 
 ---
@@ -61,7 +61,7 @@ When an application is already serving real users and has zero test coverage, **
 ### Wave 2: Module-by-Module M.A.T.E. Deepening (4 Quadrants + Pillar T & E)
 - Once Wave 1 is green, pick modules in strict **Risk Matrix order (`P0` ➔ `P1` ➔ `P2`)**:
   1. Author `specs/[module].mate-spec.md` (`mate-model`).
-  2. Generate the 4-Quadrant Test Case Matrix `tests/cases/TC-[module].md` & `.csv` (`mate-story-testcases`: Happy + Border + Negative + Forbidden Transitions).
+  2. Generate the 4-Quadrant Test Case Matrix `docs/test-cases/TC-[module].md` & `.csv` (`mate-story-testcases`: Happy + Border + Negative + Forbidden Transitions).
   3. Automate all cases enforcing the **Anti-Greenwashing Mandate** (keep failing tests marked with `test.fail()` + `npx mate-sdt bug`).
   4. Add Concurrency/Fuzzing (`mate-threat`), k6 SLAs (`mate-performance-k6`), and Exploratory Charters (`mate-explore`).
 

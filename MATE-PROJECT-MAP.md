@@ -90,7 +90,7 @@ Non-negotiable mathematical and business rules that must never be violated under
 - **Dependency Inversion (DIP):** Inject Page Objects and API clients via fixtures (`test.extend()`).
 - **Semantic Locators:** Prioritize `getByRole`, `getByLabel`, `getByTestId`.
 - **Handling Uncertainty:** Never guess SLAs, auth flows, or undocumented business rules. Ask the user or mark `[TBD: needs clarification on X]` with confidence level (`Observed` vs. `Inferred`).
-- **Anti-Greenwashing Mandate:** If a live feature fails against its User Story or Invariant, keep the real assertion, annotate with `test.fail(true, 'BUG-XXX: ...')`, and file a bug report in `tests/bugs/`.
+- **Anti-Greenwashing Mandate:** If a live feature fails against its User Story or Invariant, keep the real assertion, annotate with `test.fail(true, 'BUG-XXX: ...')`, and file a bug report in `docs/bugs/`.
 
 ### ⛔ Agents MUST NOT Do:
 - **Zero Arbitrary Sleeps:** Never use `page.waitForTimeout()`, `Thread.sleep()`, or `time.sleep()`.
@@ -129,6 +129,6 @@ Non-negotiable mathematical and business rules that must never be violated under
 - **Podman Mutation Engine:** `Configured` (`stryker.config.json`, threshold `>= 85%`)
 - **Active Release Waivers:** `None` (`./specs/waivers/`)
 - **Tracked Known Defects (`test.fail` Anti-Greenwashing):**
-  - `BUG-20261112-USER-REGISTRATION-01` (`./tests/bugs/BUG-20261112-user-registration.md`): Duplicate registration error message copy mismatch against Acceptance Criteria AC-06 (`"A customer with this email address already exists."` vs specified `"Email is already in use."`). Guarded by `test.fail(true)` in `tests/e2e/auth-registration.spec.ts` (`TC-REG-06`).
+  - `BUG-20261112-USER-REGISTRATION-01` (`./docs/bugs/BUG-20261112-user-registration.md`): Duplicate registration error message copy mismatch against Acceptance Criteria AC-06 (`"A customer with this email address already exists."` vs specified `"Email is already in use."`). Guarded by `test.fail(true)` in `tests/e2e/auth-registration.spec.ts` (`TC-REG-06`).
 - **Identified Gaps & Flakiness Radar:**
   - *MOD-01, MOD-02, and MOD-05..MOD-08 fully automated with 100% AC traceability and 4-quadrant matrices. All 16 E2E tests and 4 API contract tests pass cleanly with 1 expected defect captured via test.fail(). Next priority in Wave 2: MOD-03 (Search & Filters) & MOD-04 (Product Detail & Add to Cart).*
