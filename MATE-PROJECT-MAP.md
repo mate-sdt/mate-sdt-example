@@ -29,7 +29,7 @@ This living document is the **single source of truth** for AI coding agents and 
 | :--- | :--- | :--- | :---: | :---: | :--- |
 | **MOD-01** | **User Registration & Password Strength** | `specs/user-registration.mate-spec.md` | `AUTOMATED` | **P0** | `src/pages/register.page.ts` / `src/api/auth.client.ts` |
 | **MOD-02** | **User Login, Locking & TOTP (2FA)** | `specs/user-login.mate-spec.md` | `AUTOMATED` | **P0** | `src/pages/login.page.ts` / `src/api/auth.client.ts` |
-| **MOD-03** | **Product Overview, Search & Filters** | `specs/product-overview.mate-spec.md` | `DRAFT` | **P0** | `src/pages/catalog.page.ts` / `src/api/products.client.ts` |
+| **MOD-03** | **Product Overview, Search & Filters** | `specs/product-overview.mate-spec.md` | `AUTOMATED` | **P0** | `src/pages/catalog.page.ts` / `src/api/products.client.ts` |
 | **MOD-04** | **Product Detail & Add to Cart** | `specs/product-detail.mate-spec.md` | `DRAFT` | **P0** | `src/pages/product-detail.page.ts` / `src/api/products.client.ts` |
 | **MOD-05** | **Checkout – Cart Review & Discounts** | `specs/checkout-lifecycle.mate-spec.md` | `AUTOMATED` | **P0** | `src/pages/checkout.page.ts` / `src/pages/cart.page.ts` |
 | **MOD-06** | **Checkout – Sign In Gate** | `specs/checkout-lifecycle.mate-spec.md` | `AUTOMATED` | **P0** | `src/pages/checkout.page.ts` |
@@ -69,7 +69,7 @@ Non-negotiable mathematical and business rules that must never be violated under
 ## 4. Injectable Fixtures, Page Objects & Reusable Components (SOLID / DIP)
 
 - **`BasePage`** (`./src/pages/base.page.ts`): Abstract base class enforcing zero arbitrary sleeps, locator helpers, and semantic navigation.
-- **`CatalogPage`** (`./src/pages/catalog.page.ts`): Product catalog grid, search queries, category filters, and sorting.
+- **`CatalogPage`** (`./src/pages/catalog.page.ts`): Catalog grid, search, category/brand filters, sort, pagination, price slider (network-synced, no sleeps).
 - **`ProductDetailPage`** (`./src/pages/product-detail.page.ts`): Product information, quantity selector, and add to cart actions.
 - **`CartPage`** (`./src/pages/cart.page.ts`): Cart review, totals breakdown, and multi-step checkout navigation.
 - **`CheckoutPage`** (`./src/pages/checkout.page.ts`): 4-step purchase wizard (Cart Review -> Sign-In Gate -> Billing Address -> Payment & Order Confirmation).
@@ -97,7 +97,7 @@ Non-negotiable mathematical and business rules that must never be violated under
 - **Zero Arbitrary Sleeps:** Never use `page.waitForTimeout()`, `Thread.sleep()`, or `time.sleep()`.
 - **No Direct Instantiation in Tests:** Do not scatter `new SomePage(page)` across test bodies when a fixture exists.
 - **No Cosmetic Assertions:** Never write `expect(res).toBeDefined()` without validating schema and business invariants.
-- **No Bloated Page Objects (`MATE-ANTI-07`):** Never bloat Page Objects with dozens of single-case assertion methods (`assertInvalidX()`). Expose public `readonly` Locators, parametrize assertions (`assertAlertMessage(expected)`), and extract reusable/stateful widgets into `BaseComponent`.
+- **No Bloated Page Objects (`MATE-ANTI-07`):** No dozens of single-case assertion methods (`assertInvalidX()`). Expose `readonly` Locators, parametrize assertions (`assertAlertMessage(expected)`), extract stateful widgets into `BaseComponent`.
 
 ---
 
@@ -122,15 +122,18 @@ Non-negotiable mathematical and business rules that must never be violated under
 ## 7. Current Quality Status, Gaps & Release Governance
 
 - **Latest Release Verdict:** `[IN_PROGRESS]` | Target: `Toolshop v5.0 Onboarding` | Date: `2026-11-12`
-- **Wave 1 P0 Smoke Shield:** `14/14 PASSED` (`11.7s` runtime via `npm run test:smoke`)
+- **Wave 1 P0 Smoke Shield:** `21/21 PASSED` (`17.3s`)
 - **Wave 2 Depth Modules:**
   - `MOD-01` (User Registration & Password Strength): `APPROVED` & `AUTOMATED` (UI E2E + API contract)
   - `MOD-02` (User Login, Locking & TOTP): `APPROVED` & `AUTOMATED` (UI E2E + API contract)
+  - `MOD-03` (Product Overview, Search & Filters): `APPROVED` & `AUTOMATED` (`tests/e2e/product-overview.spec.ts`, 18/18 pass)
   - `MOD-05` to `MOD-08` (Checkout, Cart Review, Address & Payment Lifecycle): `APPROVED` & `AUTOMATED` (`specs/checkout-lifecycle.mate-spec.md`, `tests/e2e/checkout-e2e.spec.ts`)
-- **Test Suite Health Score:** `A` (100/100 across 19 files verified via `npx mate-sdt audit`)
+- **Test Suite Health Score:** `A` (100/100 across 21 files verified via `npx mate-sdt audit`)
 - **Podman Mutation Engine:** `Configured` (`stryker.config.json`, threshold `>= 85%`)
 - **Active Release Waivers:** `None` (`./specs/waivers/`)
+- **Reference sample (not a module):** `specs/sample-order-lifecycle.mate-spec.md`
 - **Tracked Known Defects (`test.fail` Anti-Greenwashing):**
-  - `BUG-20261112-USER-REGISTRATION-01` (`./docs/bugs/BUG-20261112-user-registration.md`): Duplicate registration error message copy mismatch against Acceptance Criteria AC-06 (`"A customer with this email address already exists."` vs specified `"Email is already in use."`). Guarded by `test.fail(true)` in `tests/e2e/auth-registration.spec.ts` (`TC-REG-06`).
+  - `BUG-20261112-USER-REGISTRATION-01` (`./docs/bugs/BUG-20261112-user-registration.md`): duplicate-registration error copy mismatch vs AC-06; guarded by `test.fail(true)` in `tests/e2e/auth-registration.spec.ts` (`TC-REG-06`). Full details in the bug report.
 - **Identified Gaps & Flakiness Radar:**
-  - *MOD-01, MOD-02, and MOD-05..MOD-08 fully automated with 100% AC traceability and 4-quadrant matrices. All 16 E2E tests and 4 API contract tests pass cleanly with 1 expected defect captured via test.fail(). Next priority in Wave 2: MOD-03 (Search & Filters) & MOD-04 (Product Detail & Add to Cart).*
+  - *MOD-01..03, MOD-05..08 automated; 33 E2E + 4 API tests pass; 1 expected defect (test.fail). Next: MOD-04. `DEC-OVR-01`: whitespace-only search accepted (provisional). Harness pins `locale: en-US`.*
+

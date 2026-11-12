@@ -25,6 +25,10 @@ export default defineConfig({
   ],
   use: {
     baseURL: BASE_URL,
+    // Environment-noise control: the app localizes copy from the browser locale (a Spanish
+    // OS locale rendered "Iniciar sesión"/"No se encontraron productos."). Force English so
+    // assertions on user-facing copy are deterministic regardless of the host machine.
+    locale: 'en-US',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
