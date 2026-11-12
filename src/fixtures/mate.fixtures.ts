@@ -2,6 +2,7 @@ import { test as base, expect, Page } from '@playwright/test';
 import { CatalogPage } from '../pages/catalog.page';
 import { ProductDetailPage } from '../pages/product-detail.page';
 import { CartPage } from '../pages/cart.page';
+import { CheckoutPage } from '../pages/checkout.page';
 import { LoginPage } from '../pages/login.page';
 import { RegisterPage } from '../pages/register.page';
 import { NavbarComponent } from '../components/navbar.component';
@@ -18,6 +19,7 @@ export type MateFixtures = {
   catalogPage: CatalogPage;
   productDetailPage: ProductDetailPage;
   cartPage: CartPage;
+  checkoutPage: CheckoutPage;
   loginPage: LoginPage;
   registerPage: RegisterPage;
   navbar: NavbarComponent;
@@ -36,6 +38,10 @@ export const test = base.extend<MateFixtures>({
 
   cartPage: async ({ page }, use) => {
     await use(new CartPage(page));
+  },
+
+  checkoutPage: async ({ page }, use) => {
+    await use(new CheckoutPage(page));
   },
 
   loginPage: async ({ page }, use) => {

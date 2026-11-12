@@ -46,7 +46,7 @@ To cover all 24 Sprint 5 User Stories comprehensively, `mate-core` summoned the 
 | **Architecture Lead** | **`mate-core`** | Managed [MATE-PROJECT-MAP.md](./MATE-PROJECT-MAP.md) as living Tier-1 RAM context index (`< 3,000` tokens) and enforced SOLID/DIP rules. |
 | **QA Strategy Director** | **`mate-strategy`** | Created [docs/TEST-STRATEGY.md](./docs/TEST-STRATEGY.md), cataloging all 24 modules and prioritizing them into P0, P1, and P2 via the M.A.T.E. Risk Formula ($\text{Impact} \times \text{Probability}$). |
 | **Live Browser Scout** | **`mate-pw-recon`** | Probed `https://practicesoftwaretesting.com/` using `@playwright/cli` to map semantic locators, ARIA snapshots, and backend API endpoints (`https://api.practicesoftwaretesting.com`). |
-| **QA Companion Architect** | **`mate-story-testcases`** | Ingested Sprint 5 User Stories, generating dual QA Companion matrices ([tests/cases/](./tests/cases/)) with 100% Acceptance Criteria traceability and Automated vs. Manual rationale. |
+| **QA Companion Architect** | **`mate-story-testcases`** | Ingested Sprint 5 User Stories, generating dual QA Companion matrices ([docs/test-cases/](./docs/test-cases/)) with 100% Acceptance Criteria traceability and Automated vs. Manual rationale. |
 | **Spec Modeler (Pillar M)** | **`mate-model`** | Authored formal specifications ([specs/](./specs/)) with Finite State Machines, mathematical invariants (`INV-01`..`INV-06`), and **Explicit Forbidden Transitions**. |
 | **UI Automation Engineers** | **`mate-assert-playwright` & `mate-pw-codegen`** | Created the 4-layer OOP/SOLID architecture (`BaseComponent`, `BasePage`, `MateFixtures`), automated the Wave 1 Smoke Shield, and deepened P0 modules. |
 | **API Contract Specialist** | **`mate-assert-api`** | Created typed `AuthApiClient` ([src/api/auth.client.ts](./src/api/auth.client.ts)) testing status matrices (`200`, `401`, `422`, `423`). |
@@ -69,24 +69,26 @@ Before spending weeks on edge cases, we built an automated horizontal safety net
 
 ---
 
-### 🔬 Wave 2: Module-by-Module 4-Quadrant Depth (MOD-01 & MOD-02)
-The user instructed the team: *"Let's focus in MOD-01 and MOD-02 please"*.
-
-We deepened **User Registration** and **User Login, Locking & TOTP** through the complete M.A.T.E. loop:
+### 🔬 Wave 2: Module-by-Module 4-Quadrant Depth (MOD-01, MOD-02, MOD-05 to MOD-08)
+Following the P0 Smoke Shield, we deepened both authentication and the complete multi-step purchase funnel through the M.A.T.E. loop:
 
 1. **Formal Specifications Validated:**
    - [specs/user-registration.mate-spec.md](./specs/user-registration.mate-spec.md) (AC1–AC6, Invariants `INV-01`–`INV-04`)
    - [specs/user-login.mate-spec.md](./specs/user-login.mate-spec.md) (AC1–AC10, Invariants `INV-01`–`INV-05`, 3-attempt account lockout `INV-03`)
+   - [specs/checkout-lifecycle.mate-spec.md](./specs/checkout-lifecycle.mate-spec.md) (`MOD-05` to `MOD-08`: Cart Review, Sign-In Gate, Address Validation & Payment Processing)
 2. **Dual QA Companion Test Case Matrices:**
-   - [tests/cases/TC-user-registration.md](./tests/cases/TC-user-registration.md) & [.csv](./tests/cases/TC-user-registration.csv) (8 cases)
-   - [tests/cases/TC-user-login.md](./tests/cases/TC-user-login.md) & [.csv](./tests/cases/TC-user-login.csv) (10 cases)
+   - [docs/test-cases/TC-user-registration.md](./docs/test-cases/TC-user-registration.md) & [.csv](./docs/test-cases/TC-user-registration.csv) (8 cases)
+   - [docs/test-cases/TC-user-login.md](./docs/test-cases/TC-user-login.md) & [.csv](./docs/test-cases/TC-user-login.csv) (10 cases)
+   - [docs/test-cases/TC-checkout.md](./docs/test-cases/TC-checkout.md) & [.csv](./docs/test-cases/TC-checkout.csv) (10 cases)
 3. **Page Objects & Typed Clients:**
    - [src/pages/register.page.ts](./src/pages/register.page.ts): 12 form inputs, real-time password strength validation (`Weak` ➔ `Moderate` ➔ `Strong` ➔ `Very Strong` ➔ `Excellent`), and duplicate email handling.
    - [src/pages/login.page.ts](./src/pages/login.page.ts): Authentication, account lockout error alerts, and TOTP challenge inputs.
+   - [src/pages/checkout.page.ts](./src/pages/checkout.page.ts): 4-step purchase wizard (Cart Review -> Sign-In Gate -> Billing Address Form -> Payment Method Selection & Order Confirmation).
    - [src/api/auth.client.ts](./src/api/auth.client.ts): Typed client testing `POST /users/login`, `POST /users/register`, and `GET /users/me`.
 4. **Automated Test Suites:**
    - [tests/e2e/auth-registration.spec.ts](./tests/e2e/auth-registration.spec.ts): Dynamic user registration with unique emails, password strength levels, missing required field blocks, and duplicate email rejection.
    - [tests/e2e/auth-login.spec.ts](./tests/e2e/auth-login.spec.ts): Customer vs Admin dashboard routing, invalid password messages, and session persistence.
+   - [tests/e2e/checkout-e2e.spec.ts](./tests/e2e/checkout-e2e.spec.ts): End-to-end Cash on Delivery order completion, cart quantity recalculation (`INV-02`), disabled proceed button on missing mandatory address fields (`INV-03`), and payment method state switching.
    - [tests/api/auth.spec.ts](./tests/api/auth.spec.ts): REST contract checks verifying `200 OK` bearer tokens, `401 Unauthorized`, `422 Unprocessable` duplicate email errors, and protected profile access.
 
 ---
@@ -106,6 +108,7 @@ src/
 │   ├── catalog.page.ts
 │   ├── product-detail.page.ts
 │   ├── cart.page.ts
+│   ├── checkout.page.ts
 │   ├── login.page.ts
 │   └── register.page.ts
 ├── api/                 <-- Typed API Clients extending BaseApiClient
@@ -125,12 +128,12 @@ src/
 ══════════════════════════════════════════════════════════════════════════════════
  🧉 M.A.T.E. GOVERNANCE STATUS: ALL PASSING
 ══════════════════════════════════════════════════════════════════════════════════
-  ✔ API Contract Suite (npm run test:api):       4 / 4 PASSED (2.5s)
-  ✔ Full E2E UI Suite (npm run test:e2e):       12 / 12 PASSED (10.5s)
-  ✔ Wave 1 Smoke Shield (npm run test:smoke):   11 / 11 PASSED (12.5s)
-  ✔ Test Suite Health Score (npx mate-sdt audit): Grade A (100/100 across 17 files)
+  ✔ API Contract Suite (npm run test:api):       4 / 4 PASSED (2.4s)
+  ✔ Full E2E UI Suite (npm run test:e2e):       16 / 16 PASSED (13.8s)
+  ✔ Wave 1 Smoke Shield (npm run test:smoke):   14 / 14 PASSED (11.7s)
+  ✔ Test Suite Health Score (npx mate-sdt audit): Grade A (100/100 across 19 files)
   ✔ Anti-Patterns Detected:                     0 (Zero arbitrary sleeps, full DIP)
-  ✔ Specifications Validated:                   3 / 3 APPROVED
+  ✔ Specifications Validated:                   4 / 4 APPROVED
 ══════════════════════════════════════════════════════════════════════════════════
 ```
 
@@ -188,7 +191,7 @@ npx mate-sdt status
 3. **Zero Arbitrary Sleeps:**  
    `page.waitForTimeout()` and arbitrary delays are strictly forbidden (`MATE-ANTI-01`). All waits rely on locator auto-retries and web assertions.
 4. **Dual QA Companion Documents:**  
-   Every module receives both a rich Markdown companion ([tests/cases/*.md](./tests/cases/)) and a Jira/Xray/Zephyr-ready CSV export ([tests/cases/*.csv](./tests/cases/)).
+   Every module receives both a rich Markdown companion ([docs/test-cases/*.md](./docs/test-cases/)) and a Jira/Xray/Zephyr-ready CSV export ([docs/test-cases/*.csv](./docs/test-cases/)).
 
 ---
 

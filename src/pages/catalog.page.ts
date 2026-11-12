@@ -47,6 +47,7 @@ export class CatalogPage extends BasePage {
     await expect(firstCard).toBeVisible();
     const title = (await firstCard.locator('.card-title, [data-test="product-name"]').textContent())?.trim() || '';
     await firstCard.click();
+    await this.page.waitForURL(/.*product\/.*/, { timeout: 15000 });
     return title;
   }
 

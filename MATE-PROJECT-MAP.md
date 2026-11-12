@@ -31,10 +31,10 @@ This living document is the **single source of truth** for AI coding agents and 
 | **MOD-02** | **User Login, Locking & TOTP (2FA)** | `specs/user-login.mate-spec.md` | `AUTOMATED` | **P0** | `src/pages/login.page.ts` / `src/api/auth.client.ts` |
 | **MOD-03** | **Product Overview, Search & Filters** | `specs/product-overview.mate-spec.md` | `DRAFT` | **P0** | `src/pages/catalog.page.ts` / `src/api/products.client.ts` |
 | **MOD-04** | **Product Detail & Add to Cart** | `specs/product-detail.mate-spec.md` | `DRAFT` | **P0** | `src/pages/product-detail.page.ts` / `src/api/products.client.ts` |
-| **MOD-05** | **Checkout – Cart Review & Discounts** | `specs/checkout-cart.mate-spec.md` | `DRAFT` | **P0** | `src/pages/checkout-cart.page.ts` / `src/api/cart.client.ts` |
-| **MOD-06** | **Checkout – Sign In Gate** | `specs/checkout-auth.mate-spec.md` | `DRAFT` | **P0** | `src/pages/checkout-auth.page.ts` / `src/api/auth.client.ts` |
-| **MOD-07** | **Checkout – Billing & Address** | `specs/checkout-address.mate-spec.md` | `DRAFT` | **P0** | `src/pages/checkout-address.page.ts` / `src/api/cart.client.ts` |
-| **MOD-08** | **Checkout – Payment (Advanced)** | `specs/checkout-payment.mate-spec.md` | `DRAFT` | **P0** | `src/pages/checkout-payment.page.ts` / `src/api/payment.client.ts` |
+| **MOD-05** | **Checkout – Cart Review & Discounts** | `specs/checkout-lifecycle.mate-spec.md` | `AUTOMATED` | **P0** | `src/pages/checkout.page.ts` / `src/pages/cart.page.ts` |
+| **MOD-06** | **Checkout – Sign In Gate** | `specs/checkout-lifecycle.mate-spec.md` | `AUTOMATED` | **P0** | `src/pages/checkout.page.ts` |
+| **MOD-07** | **Checkout – Billing & Address** | `specs/checkout-lifecycle.mate-spec.md` | `AUTOMATED` | **P0** | `src/pages/checkout.page.ts` |
+| **MOD-08** | **Checkout – Payment (Advanced)** | `specs/checkout-lifecycle.mate-spec.md` | `AUTOMATED` | **P0** | `src/pages/checkout.page.ts` |
 | **MOD-09** | **Rental Products & Duration Engine** | `specs/rental-products.mate-spec.md` | `DRAFT` | **P1** | `src/pages/rentals.page.ts` / `src/api/rentals.client.ts` |
 | **MOD-10** | **Two-Factor Auth Setup (2FA)** | `specs/two-factor-setup.mate-spec.md` | `DRAFT` | **P1** | `src/pages/two-factor.page.ts` / `src/api/auth.client.ts` |
 | **MOD-11** | **Customer Profile & Password Change** | `specs/customer-profile.mate-spec.md` | `DRAFT` | **P1** | `src/pages/profile.page.ts` / `src/api/users.client.ts` |
@@ -72,11 +72,13 @@ Non-negotiable mathematical and business rules that must never be violated under
 - **`CatalogPage`** (`./src/pages/catalog.page.ts`): Product catalog grid, search queries, category filters, and sorting.
 - **`ProductDetailPage`** (`./src/pages/product-detail.page.ts`): Product information, quantity selector, and add to cart actions.
 - **`CartPage`** (`./src/pages/cart.page.ts`): Cart review, totals breakdown, and multi-step checkout navigation.
+- **`CheckoutPage`** (`./src/pages/checkout.page.ts`): 4-step purchase wizard (Cart Review -> Sign-In Gate -> Billing Address -> Payment & Order Confirmation).
 - **`LoginPage`** (`./src/pages/login.page.ts`): Authentication form, credentials submission, and error validation.
+- **`RegisterPage`** (`./src/pages/register.page.ts`): Customer registration form, mandatory field checks, password strength meter, and submission.
 - **`BaseComponent`** (`./src/components/base.component.ts`): Reusable UI widget base class.
 - **`NavbarComponent`** (`./src/components/navbar.component.ts`): Top navigation bar, language switcher, cart badge, and user menu.
 - **`NotificationToastComponent`** (`./src/components/notification-toast.component.ts`): Reusable alert/toast component object.
-- **`MateFixtures`** (`./src/fixtures/mate.fixtures.ts`): Dependency inversion fixtures (`catalogPage`, `productDetailPage`, `cartPage`, `loginPage`, `navbar`, `authenticatedCustomerPage`).
+- **`MateFixtures`** (`./src/fixtures/mate.fixtures.ts`): Dependency inversion fixtures (`catalogPage`, `productDetailPage`, `cartPage`, `checkoutPage`, `loginPage`, `registerPage`, `navbar`, `authenticatedCustomerPage`).
 - **`BaseApiClient`** (`./src/api/base-api.client.ts`): Typed request builder with schema validation and error handling.
 
 ---
@@ -118,12 +120,13 @@ Non-negotiable mathematical and business rules that must never be violated under
 ## 7. Current Quality Status, Gaps & Release Governance
 
 - **Latest Release Verdict:** `[IN_PROGRESS]` | Target: `Toolshop v5.0 Onboarding` | Date: `2026-11-12`
-- **Wave 1 P0 Smoke Shield:** `11/11 PASSED` (`10.2s` runtime via `npm run test:smoke`)
+- **Wave 1 P0 Smoke Shield:** `14/14 PASSED` (`11.7s` runtime via `npm run test:smoke`)
 - **Wave 2 Depth Modules:**
   - `MOD-01` (User Registration & Password Strength): `APPROVED` & `AUTOMATED` (UI E2E + API contract)
   - `MOD-02` (User Login, Locking & TOTP): `APPROVED` & `AUTOMATED` (UI E2E + API contract)
-- **Test Suite Health Score:** `A` (100/100 across 17 files verified via `npx mate-sdt audit`)
+  - `MOD-05` to `MOD-08` (Checkout, Cart Review, Address & Payment Lifecycle): `APPROVED` & `AUTOMATED` (`specs/checkout-lifecycle.mate-spec.md`, `tests/e2e/checkout-e2e.spec.ts`)
+- **Test Suite Health Score:** `A` (100/100 across 19 files verified via `npx mate-sdt audit`)
 - **Podman Mutation Engine:** `Configured` (`stryker.config.json`, threshold `>= 85%`)
 - **Active Release Waivers:** `None` (`./specs/waivers/`)
 - **Identified Gaps & Flakiness Radar:**
-  - *MOD-01 and MOD-02 automated with 100% AC traceability and 4-quadrant matrices. Next priority in Wave 2: MOD-05 through MOD-08 (Checkout, Cart, Discounts & Payment).*
+  - *MOD-01, MOD-02, and MOD-05..MOD-08 fully automated with 100% AC traceability and 4-quadrant matrices. All 16 E2E tests and 4 API contract tests pass cleanly. Next priority in Wave 2: MOD-03 (Search & Filters) & MOD-04 (Product Detail & Add to Cart).*

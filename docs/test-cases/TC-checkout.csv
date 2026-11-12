@@ -1,0 +1,11 @@
+TC ID,Category,Priority,Execution Mode,Title,Test Steps,Expected Result,Final Status
+TC-CHK-01,HAPPY_PATH,@p0,AUTOMATE_UI,End-to-End Checkout with Cash on Delivery,1. Add item 2. Proceed to review 3. Confirm address 4. Select Cash on Delivery 5. Confirm,Order confirmation displayed invoice generated cart cleared,PASS
+TC-CHK-02,BORDER_CASE,@p0,AUTOMATE_UI,Cart Item Quantity Recalculation & Total Invariant,1. Open cart 2. Update quantity from 1 to 2,Line price and total recalculated accurately,PASS
+TC-CHK-03,BORDER_CASE,@p1,AUTOMATE_UI,Delete Item & Empty Cart State Handling,1. Add item 2. Navigate to cart 3. Click delete,Item removed and Your shopping cart is empty shown,PASS
+TC-CHK-04,NEGATIVE_PATH,@p0,AUTOMATE_UI,Missing Billing Address Disables Proceed Button,1. Proceed to Step 3 Address 2. Clear required fields,Field highlighted invalid and Proceed button disabled,PASS
+TC-CHK-05,NEGATIVE_PATH,@p1,AUTOMATE_UI,Expired Credit Card Date Validation,1. Select Credit Card 2. Enter expired MM/YYYY,Error Expiration date must be in the future displayed,PASS
+TC-CHK-06,STATE_TRANSITION,@p1,AUTOMATE_UI,Payment Method Form Switching & Field Reset,1. Select Credit Card 2. Switch to Cash on Delivery,Form fields reset cleanly,PASS
+TC-CHK-07,STATE_TRANSITION,@p0,AUTOMATE_UI,Forbidden Transition: Checkout with Empty Cart,1. Open /checkout with 0 items,Proceed button disabled or empty state blocks progression,PASS
+TC-CHK-08,BORDER_CASE,@p1,AUTOMATE_API,Combined Rental & Product Discount API Calculation,1. Add rental and regular item via API,Subtotal applies 15 percent combined discount,PASS
+TC-CHK-09,HAPPY_PATH,@p2,MANUAL_TEST,Customer Order Confirmation Email Delivery,1. Complete order 2. Check test inbox,Email received with order breakdown,Manual Checklist
+TC-CHK-10,BORDER_CASE,@p1,AUTOMATE_API,Gift Card Redemption & Cart Subtotal Offset,1. Apply gift card code to cart payload,Total decremented by gift card amount,PASS
