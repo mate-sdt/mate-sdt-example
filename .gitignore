@@ -1,0 +1,20 @@
+# Dependencies
+node_modules/
+
+# Environment variables (do not commit secrets)
+.env
+
+# Playwright Test Results & Reports
+test-results/
+playwright-report/
+blob-report/
+
+# M.A.T.E. & @playwright/cli artifacts and auth states
+.mate/
+.playwright-cli/
+playwright/.auth/
+*.auth-state.json
+
+# OS generated files
+.DS_Store
+Thumbs.db
