@@ -1,5 +1,6 @@
 import { Page, Locator, expect } from '@playwright/test';
 import { BasePage } from './base.page';
+import { PasswordStrengthComponent, PasswordStrengthLevel } from '../components/password-strength.component';
 
 export type RegistrationFormData = {
   firstName: string;
@@ -19,6 +20,10 @@ export type RegistrationFormData = {
 /**
  * RegisterPage - Customer Registration and Password Strength.
  * Covers MOD-01 (User Registration).
+ * Implements M.A.T.E. Enterprise Anti-Bloated Page Object pattern:
+ * - Public readonly locators for expect.soft() flexibility
+ * - Extracted PasswordStrengthComponent
+ * - Parameterized assertAlertMessage()
  */
 export class RegisterPage extends BasePage {
   readonly firstNameInput: Locator;
@@ -34,8 +39,14 @@ export class RegisterPage extends BasePage {
   readonly emailInput: Locator;
   readonly passwordInput: Locator;
   readonly registerSubmitButton: Locator;
-  readonly errorMessage: Locator;
-  readonly passwordStrengthLabel: Locator;
+
+  // Public readonly locators for assertion flexibility & expect.soft()
+  readonly alertBanner: Locator;
+  readonly fieldErrors: Locator;
+  readonly errorMessage: Locator; // Backwards-compatible alias
+
+  // Extracted Component Object
+  readonly passwordStrength: PasswordStrengthComponent;
 
   constructor(page: Page) {
     super(page);
@@ -52,12 +63,15 @@ export class RegisterPage extends BasePage {
     this.emailInput = page.locator('[data-test="email"]');
     this.passwordInput = page.locator('[data-test="password"]');
     this.registerSubmitButton = page.locator('[data-test="register-submit"]');
-    this.errorMessage = page.locator('[data-test="register-error"], [data-test="email-error"], .alert-danger');
-    this.passwordStrengthLabel = page.locator('.progress-bar, .help-block');
+    this.alertBanner = page.locator('[data-test="register-error"], [data-test="email-error"], .alert-danger');
+    this.errorMessage = this.alertBanner;
+    this.fieldErrors = page.locator('.invalid-feedback, input:invalid');
+    this.passwordStrength = new PasswordStrengthComponent(page.locator('form'));
   }
 
   async goto(): Promise<void> {
     await this.navigateTo('/auth/register');
+    // Internal Guard: wait for first input to be interactive
     await expect(this.firstNameInput).toBeVisible({ timeout: 15000 });
   }
 
@@ -88,19 +102,19 @@ export class RegisterPage extends BasePage {
     await this.passwordInput.fill(pw);
   }
 
-  async assertPasswordStrength(expectedLevel: 'Weak' | 'Moderate' | 'Strong' | 'Very Strong' | 'Excellent'): Promise<void> {
-    const strengthIndicator = this.page.getByText(expectedLevel, { exact: true });
-    await expect(strengthIndicator.first()).toBeVisible({ timeout: 5000 });
+  /**
+   * Delegates to extracted PasswordStrengthComponent.
+   */
+  async assertPasswordStrength(expectedLevel: PasswordStrengthLevel): Promise<void> {
+    await this.passwordStrength.assertLevel(expectedLevel);
   }
 
-  async assertDuplicateEmailError(): Promise<void> {
-    await expect(this.errorMessage.first()).toBeVisible({ timeout: 10000 });
-    await expect(this.errorMessage.first()).toContainText(/already in use|already exists/i);
-  }
-
-  async assertDuplicateEmailErrorStrict(): Promise<void> {
-    await expect(this.errorMessage.first()).toBeVisible({ timeout: 10000 });
-    // AC-06 mandated text: "Email is already in use."
-    await expect(this.errorMessage.first()).toContainText('Email is already in use.');
+  /**
+   * Parameterized Alert Message assertion.
+   * Replaces single-case methods (MATE-ANTI-07).
+   */
+  async assertAlertMessage(expectedSnippet: string | RegExp): Promise<void> {
+    await expect(this.alertBanner.first()).toBeVisible({ timeout: 10000 });
+    await expect(this.alertBanner.first()).toContainText(expectedSnippet);
   }
 }

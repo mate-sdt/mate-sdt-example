@@ -78,6 +78,7 @@ Non-negotiable mathematical and business rules that must never be violated under
 - **`BaseComponent`** (`./src/components/base.component.ts`): Reusable UI widget base class.
 - **`NavbarComponent`** (`./src/components/navbar.component.ts`): Top navigation bar, language switcher, cart badge, and user menu.
 - **`NotificationToastComponent`** (`./src/components/notification-toast.component.ts`): Reusable alert/toast component object.
+- **`PasswordStrengthComponent`** (`./src/components/password-strength.component.ts`): Reusable password strength meter widget composed in `RegisterPage`.
 - **`MateFixtures`** (`./src/fixtures/mate.fixtures.ts`): Dependency inversion fixtures (`catalogPage`, `productDetailPage`, `cartPage`, `checkoutPage`, `loginPage`, `registerPage`, `navbar`, `authenticatedCustomerPage`).
 - **`BaseApiClient`** (`./src/api/base-api.client.ts`): Typed request builder with schema validation and error handling.
 
@@ -96,6 +97,7 @@ Non-negotiable mathematical and business rules that must never be violated under
 - **Zero Arbitrary Sleeps:** Never use `page.waitForTimeout()`, `Thread.sleep()`, or `time.sleep()`.
 - **No Direct Instantiation in Tests:** Do not scatter `new SomePage(page)` across test bodies when a fixture exists.
 - **No Cosmetic Assertions:** Never write `expect(res).toBeDefined()` without validating schema and business invariants.
+- **No Bloated Page Objects (`MATE-ANTI-07`):** Never bloat Page Objects with dozens of single-case assertion methods (`assertInvalidX()`). Expose public `readonly` Locators, parametrize assertions (`assertAlertMessage(expected)`), and extract reusable/stateful widgets into `BaseComponent`.
 
 ---
 

@@ -39,23 +39,23 @@ test.describe('MOD-01: User Registration & Password Strength', () => {
 
     // 1. Weak password (only lowercase)
     await registerPage.typePassword('abcdef');
-    await registerPage.assertPasswordStrength('Weak');
+    await registerPage.passwordStrength.assertLevel('Weak');
 
     // 2. Moderate password (letters + numbers)
     await registerPage.typePassword('abcdef12');
-    await registerPage.assertPasswordStrength('Moderate');
+    await registerPage.passwordStrength.assertLevel('Moderate');
 
     // 3. Strong password (lower + upper + numbers)
     await registerPage.typePassword('Abcdef12');
-    await registerPage.assertPasswordStrength('Strong');
+    await registerPage.passwordStrength.assertLevel('Strong');
 
     // 4. Very Strong password (lower + upper + numbers + symbols)
     await registerPage.typePassword('Abcdef12!');
-    await registerPage.assertPasswordStrength('Very Strong');
+    await registerPage.passwordStrength.assertLevel('Very Strong');
 
     // 5. Excellent password (12+ characters meeting all criteria)
     await registerPage.typePassword('VerySecureP@ssword2026!');
-    await registerPage.assertPasswordStrength('Excellent');
+    await registerPage.passwordStrength.assertLevel('Excellent');
   });
 
   test('TC-REG-04: Missing Mandatory Fields Blocks Submission @p0', async ({ registerPage, page }) => {
@@ -96,7 +96,8 @@ test.describe('MOD-01: User Registration & Password Strength', () => {
     await registerPage.submit();
 
     // AC-06 / INV-04 strict expectation: "Email is already in use."
-    await registerPage.assertDuplicateEmailErrorStrict();
+    // Parameterized assertion replaces single-case hardcoded methods (MATE-ANTI-07)
+    await registerPage.assertAlertMessage('Email is already in use.');
   });
 
 });
