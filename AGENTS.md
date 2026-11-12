@@ -2,7 +2,7 @@
 # AGENTS.md — M.A.T.E. Spec-Driven Testing (SDT) & Agent Governance
 
 > Governed by the **M.A.T.E. Method** (`mate-sdt` — Model-Agnostic Test Engineering).
-> Built on **Context Engineering** (*Write, Select, Compress, Isolate*) and **Harness Engineering** ($\text{Agent} = \text{Model} + \text{Harness}$).
+> Built on **Context Engineering** (*Write, Select, Compress, Isolate*) and **Harness Engineering** (`Agent = Model + Harness`).
 
 ## 1. Conversational Entry Points & Agent Routing
 - **Open-Ended Prompts, Brainstorming, or "Where do I start?":** Activate `mate-party` (Council of QA Experts mode). Convenes the virtual round-table (Tony Strategist, Exploratory Sleuth, Automation Architect, Threat Specialist, Stakeholder Liaison), loads domain discovery questions, and synthesizes a concrete action plan.
