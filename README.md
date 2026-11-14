@@ -5,8 +5,8 @@
 
 [![M.A.T.E. Audit](https://img.shields.io/badge/M.A.T.E._Audit-Grade_A_(100%2F100)-205d96?style=for-the-badge&logo=shield)](./MATE-PROJECT-MAP.md)
 [![Playwright Tests](https://img.shields.io/badge/Playwright-100%25_Passing-9fc93c?style=for-the-badge&logo=playwright)](./tests/e2e/)
-[![SOLID / DIP Architecture](https://img.shields.io/badge/Architecture-4--Layer_OOP_%2F_SOLID-orange?style=for-the-badge)](./src/)
-[![Framework](https://img.shields.io/badge/mate--sdt-v1.8.1-blue?style=for-the-badge)](https://github.com/mate-sdt/mate-sdt)
+[![SOLID / DIP Architecture](https://img.shields.io/badge/Architecture-Forward--Only_SOLID-orange?style=for-the-badge)](./src/)
+[![Framework](https://img.shields.io/badge/mate--sdt-v1.13.2-blue?style=for-the-badge)](https://github.com/mate-sdt/mate-sdt)
 
 ---
 
@@ -69,41 +69,49 @@ Before spending weeks on edge cases, we built an automated horizontal safety net
 
 ---
 
-### 🔬 Wave 2: Module-by-Module 4-Quadrant Depth (MOD-01, MOD-02, MOD-05 to MOD-08)
-Following the P0 Smoke Shield, we deepened both authentication and the complete multi-step purchase funnel through the M.A.T.E. loop:
+### 🔬 Wave 2: Module-by-Module 4-Quadrant Depth (MOD-01, MOD-02, MOD-03, MOD-05 to MOD-08)
+Following the P0 Smoke Shield, we deepened authentication, catalog browsing/filtering, and the complete multi-step purchase funnel through the M.A.T.E. loop:
 
 1. **Formal Specifications Validated:**
    - [specs/user-registration.mate-spec.md](./specs/user-registration.mate-spec.md) (AC1–AC6, Invariants `INV-01`–`INV-04`)
    - [specs/user-login.mate-spec.md](./specs/user-login.mate-spec.md) (AC1–AC10, Invariants `INV-01`–`INV-05`, 3-attempt account lockout `INV-03`)
+   - [specs/product-overview.mate-spec.md](./specs/product-overview.mate-spec.md) (`MOD-03`: Catalog, Search, Categories, Brands, Price Slider & Invariants `INV-01`–`INV-07`, Oracle `ORA-PERF-01`)
    - [specs/checkout-lifecycle.mate-spec.md](./specs/checkout-lifecycle.mate-spec.md) (`MOD-05` to `MOD-08`: Cart Review, Sign-In Gate, Address Validation & Payment Processing)
 2. **Dual QA Companion Test Case Matrices:**
    - [docs/test-cases/TC-user-registration.md](./docs/test-cases/TC-user-registration.md) & [.csv](./docs/test-cases/TC-user-registration.csv) (8 cases)
-   - [docs/test-cases/TC-user-login.md](./docs/test-cases/TC-user-login.md) & [.csv](./docs/test-cases/TC-user-login.csv) (10 cases)
+   - [docs/test-cases/TC-user-login.md](./docs/test-cases/TC-user-login.md) & [.csv](./docs/test-cases/TC-user-login.csv) (12 cases, including Threat/Chaos cases)
+   - [docs/test-cases/TC-product-overview.md](./docs/test-cases/TC-product-overview.md) & [.csv](./docs/test-cases/TC-product-overview.csv) (22 cases, including Fuzzing & k6 Performance Oracles)
    - [docs/test-cases/TC-checkout.md](./docs/test-cases/TC-checkout.md) & [.csv](./docs/test-cases/TC-checkout.csv) (10 cases)
 3. **Page Objects & Typed Clients:**
    - [src/pages/register.page.ts](./src/pages/register.page.ts): 12 form inputs, real-time password strength validation (`Weak` ➔ `Moderate` ➔ `Strong` ➔ `Very Strong` ➔ `Excellent`), and duplicate email handling.
    - [src/pages/login.page.ts](./src/pages/login.page.ts): Authentication, account lockout error alerts, and TOTP challenge inputs.
+   - [src/pages/catalog.page.ts](./src/pages/catalog.page.ts): Catalog grid, search, category/brand filters, sort, pagination, and price range slider.
    - [src/pages/checkout.page.ts](./src/pages/checkout.page.ts): 4-step purchase wizard (Cart Review -> Sign-In Gate -> Billing Address Form -> Payment Method Selection & Order Confirmation).
    - [src/api/auth.client.ts](./src/api/auth.client.ts): Typed client testing `POST /users/login`, `POST /users/register`, and `GET /users/me`.
 4. **Automated Test Suites:**
    - [tests/e2e/auth-registration.spec.ts](./tests/e2e/auth-registration.spec.ts): Dynamic user registration with unique emails, password strength levels, missing required field blocks, and duplicate email rejection.
    - [tests/e2e/auth-login.spec.ts](./tests/e2e/auth-login.spec.ts): Customer vs Admin dashboard routing, invalid password messages, and session persistence.
+   - [tests/e2e/product-overview.spec.ts](./tests/e2e/product-overview.spec.ts): Full catalog grid rendering, search boundaries, category and brand combinations, sorting, and price range sliders.
    - [tests/e2e/checkout-e2e.spec.ts](./tests/e2e/checkout-e2e.spec.ts): End-to-end Cash on Delivery order completion, cart quantity recalculation (`INV-02`), disabled proceed button on missing mandatory address fields (`INV-03`), and payment method state switching.
    - [tests/api/auth.spec.ts](./tests/api/auth.spec.ts): REST contract checks verifying `200 OK` bearer tokens, `401 Unauthorized`, `422 Unprocessable` duplicate email errors, and protected profile access.
+   - [tests/threats/auth-catalog-threats.spec.ts](./tests/threats/auth-catalog-threats.spec.ts): Pillar T adversarial attacks verifying concurrent password brute-force resistance (`INV-03`), BOLA / IDOR vertical privilege escalation prevention (`INV-06`), and SQLi/XSS/Unicode search payload fuzzing (`INV-02`).
+   - [tests/nfr/catalog-perf.k6.js](./tests/nfr/catalog-perf.k6.js): Non-functional performance SLA checks via Grafana k6 in rootless Podman validating `ORA-PERF-01` (`p95 <= 800ms`).
 
 ---
 
-## 🏛️ 4-Layer OOP / SOLID Architecture
+## 🏛️ Forward-Only 6-Layer Architecture (OOP / SOLID)
 
-M.A.T.E. strictly enforces Object-Oriented Design and Dependency Inversion:
+M.A.T.E. strictly enforces Forward-Only Dependency Layers and Dependency Inversion (`models -> components / api -> pages -> fixtures -> tests`):
 
 ```
 src/
+├── models/              <-- Strict TypeScript Schemas & Types (Zero `any`)
 ├── components/          <-- BaseComponent & Reusable UI Widgets
 │   ├── base.component.ts
 │   ├── navbar.component.ts
-│   └── notification-toast.component.ts
-├── pages/               <-- Page Objects extending BasePage (SRP / OCP)
+│   ├── notification-toast.component.ts
+│   └── password-strength.component.ts
+├── pages/               <-- Page Objects extending BasePage (SRP / OCP, <= 300 lines)
 │   ├── base.page.ts
 │   ├── catalog.page.ts
 │   ├── product-detail.page.ts
@@ -116,9 +124,16 @@ src/
 │   └── auth.client.ts
 └── fixtures/            <-- Dependency Inversion (DIP) Playwright Fixtures
     └── mate.fixtures.ts
+
+tests/
+├── e2e/                 <-- End-to-End User Journeys (Smoke & Regression)
+├── api/                 <-- REST / Contract Suites
+├── threats/             <-- Pillar T: Adversarial, Concurrency & Fuzzing Suites
+├── nfr/                 <-- Non-Functional Performance Oracles (Grafana k6)
+└── charters/            <-- Pillar E: Session-Based Exploratory Charters (SBTM)
 ```
 
-> **Strict Rule:** Test files never call `new SomePage(page)`. Page Objects and API clients are injected via `test.extend<MateFixtures>()` in [src/fixtures/mate.fixtures.ts](./src/fixtures/mate.fixtures.ts).
+> **Strict Rule:** Test specs never call `new SomePage(page)` or raw `page.locator()` directly (`MATE-ANTI-08`). Page Objects and API clients are injected via `test.extend<MateFixtures>()` in [src/fixtures/mate.fixtures.ts](./src/fixtures/mate.fixtures.ts).
 
 ---
 
@@ -126,14 +141,17 @@ src/
 
 ```
 ══════════════════════════════════════════════════════════════════════════════════
- 🧉 M.A.T.E. GOVERNANCE STATUS: ALL PASSING
+ 🧉 M.A.T.E. GOVERNANCE STATUS: ALL PASSING (v1.13.2)
 ══════════════════════════════════════════════════════════════════════════════════
-  ✔ API Contract Suite (npm run test:api):       4 / 4 PASSED (2.4s)
-  ✔ Full E2E UI Suite (npm run test:e2e):       16 / 16 PASSED (13.8s)
-  ✔ Wave 1 Smoke Shield (npm run test:smoke):   14 / 14 PASSED (11.7s)
-  ✔ Test Suite Health Score (npx mate-sdt audit): Grade A (100/100 across 19 files)
-  ✔ Anti-Patterns Detected:                     0 (Zero arbitrary sleeps, full DIP)
-  ✔ Specifications Validated:                   4 / 4 APPROVED
+  ✔ API Contract Suite (npm run test:api):          4 / 4 PASSED (2.3s)
+  ✔ Full E2E UI Suite (npm run test:e2e):          35 / 35 PASSED
+  ✔ Wave 1 Smoke Shield (npm run test:smoke):      21 / 21 PASSED
+  ✔ Pillar T Threat Suite (npm run test:threats):   3 / 3 PASSED (4.6s)
+  ✔ k6 Performance SLA (npx mate-sdt k6 ...):      All Oracles Met (p95 <= 800ms)
+  ✔ Test Suite Health Score (npx mate-sdt audit):  Grade A (100/100 across 23 files)
+  ✔ 5-Gate Closed-Loop (npx mate-sdt gate):        ALL 5 GATES PASSED
+  ✔ Anti-Patterns Detected:                        0 (Zero arbitrary sleeps, full DIP)
+  ✔ Specifications Validated:                      5 / 5 APPROVED
 ══════════════════════════════════════════════════════════════════════════════════
 ```
 
@@ -170,8 +188,20 @@ npm run test:e2e
 # Run API Contract Suites
 npm run test:api
 
+# Run Pillar T: Adversarial, Concurrency & Security Fuzzing Suites
+npm run test:threats
+
+# Run Grafana k6 Performance SLA Suite inside rootless Podman
+npx mate-sdt k6 tests/nfr/catalog-perf.k6.js
+
+# Run Closed-Loop 5-Gate Verification Gate (Pre-commit / CI Guardrail)
+npx mate-sdt gate
+
 # Run M.A.T.E. Quality Audit (Health Score A-F)
 npx mate-sdt audit
+
+# Run Continuous Doc-Gardening & Invariant Coverage GC
+npx mate-sdt gc
 
 # Validate Specifications against SDT Standard
 npx mate-sdt validate
