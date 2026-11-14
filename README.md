@@ -18,7 +18,7 @@ It all started with this exact initial user request:
 
 > **The Initial Prompt:**  
 > ```text
-> /mate-core we need to start a new automation framework to test this website: https://practicesoftwaretesting.com/
+> We need to start a new automation framework to test this website: https://practicesoftwaretesting.com/
 > The user stories to test are in: https://testsmith-io.github.io/practice-software-testing/#/user-stories/v5
 > The goal it's to bring anyone on the team that needs to be part of this so we can cover all the user stories that are mention in here.
 > ```
