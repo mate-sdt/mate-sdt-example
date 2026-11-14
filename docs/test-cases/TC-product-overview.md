@@ -54,6 +54,8 @@
 | **TC-OVR-20** | `BORDER_CASE` | `@p2` | `AUTOMATE_UI` | Pins the provisional product decision `DEC-OVR-01` so any future trimming change is detected as a deliberate Spec Update. | Whitespace-only search accepted (`DEC-OVR-01`) | 1. Enter 3 spaces; 2. Submit | Request issued, caption echoes the raw text, empty state `There are no products found.` (**accepted behavior, not a defect**) [`INV-02`] | ✅ PASS (observed 2026-11-12) | ✅ Automated (`PASS`) |
 | **TC-OVR-18** | `HAPPY_PATH` | `@p2` | `EXPLORATORY_CHARTER` | Discounts are location/data based; none seen on page 1. | Discount price display | 1. Find a discounted product; 2. Inspect card | Struck-through original price + discounted price | ⚠️ NOT OBSERVED `[TBD]` | 🧭 Charter `CHR-OVR-03` |
 | **TC-OVR-19** | `HAPPY_PATH` | `@p2` | `MANUAL_TEST` | Stock is volatile shared test data; automation would be flaky without a data fixture. | Out-of-stock indicator | 1. Browse pages until an out-of-stock product appears | `Out of stock` shown on card | ✅ PASS (observed once on page 1) | 🧑‍💻 Manual Checklist |
+| **THREAT-OVR-01** | `THREAT_CHAOS` | `@p1` | `AUTOMATE_API` | Fuzzing & injection attack resilience on backend search route. | Search & catalog payload fuzzing resistance | 1. Send SQLi, XSS, 5k char overflow, & Unicode to `/products/search` | Returns 200/400/422 without 5xx, SQLSTATE, or leaked stack traces [`INV-02`] | ✅ PASS | ✅ Automated (`tests/threats/`) |
+| **NFR-PERF-01** | `PERFORMANCE` | `@p0` | `AUTOMATE_K6` | Sustained catalog & search rendering latency oracle under concurrent VUs. | Product catalog & search SLA validation (p95 <= 800ms) | 1. Run k6 scenario with 5 VUs over 15s | p95 latency <= 800ms, failure rate < 5% [`ORA-PERF-01`] | ✅ PASS | ✅ Automated (`tests/nfr/`) |
 
 ---
 

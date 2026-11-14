@@ -40,6 +40,8 @@
 | **TC-LOG-08** | `HAPPY_PATH` | `@p1` | `AUTOMATE_UI` | Verifies two-factor authentication challenge step. | TOTP Two-Factor Authentication Prompt & Validation | 1. Log in with 2FA account<br>2. Submit 6-digit TOTP | 6-digit challenge prompt shown, valid TOTP redirects to `/account` [`INV-05`] | ✅ PASS | ✅ Automated (`PASS`) |
 | **TC-LOG-09** | `NEGATIVE_PATH` | `@p1` | `AUTOMATE_UI` | Verifies rejection of incorrect TOTP tokens. | Invalid TOTP Token Rejection | 1. Submit incorrect 6-digit TOTP code | Error displays `Invalid TOTP` [`INV-05`] | ✅ PASS | ✅ Automated (`PASS`) |
 | **TC-LOG-10** | `HAPPY_PATH` | `@p2` | `MANUAL_TEST` | External OAuth Google popup interaction and third-party credential sandbox. | Google Social Login Popup & OAuth Consent | 1. Click "Sign in with Google"<br>2. Authenticate in Google OAuth window | Popup opens at 500x400px; upon completion user session is established | ➖ Manual | 🧑‍💻 Manual Checklist |
+| **THR-AUTH-01** | `THREAT_CHAOS` | `@p0` | `AUTOMATE_API` | Verifies server resilience against rapid password attack bursts. | Brute-force credential burst fails gracefully | 1. Burst 5 concurrent bad logins via `Promise.all` | Status is 401/422/423/429 without 5xx or leaked stack traces [`INV-03`] | ✅ PASS | ✅ Automated (`tests/threats/`) |
+| **THR-AUTH-03** | `THREAT_CHAOS` | `@p0` | `AUTOMATE_API` | Vertical privilege escalation & BOLA authorization probe. | Customer cannot access admin reporting endpoint | 1. Login as customer; 2. Request `/reports/total-sales-per-country` | Status returns 401/403 Forbidden [`INV-06`] | ✅ PASS | ✅ Automated (`tests/threats/`) |
 
 ---
 
