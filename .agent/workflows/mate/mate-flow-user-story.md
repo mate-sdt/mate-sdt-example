@@ -1,5 +1,7 @@
 ---
-description: End-to-End Daily QA Workflow — From User Story (Atlassian/Jira MCP, Notion MCP, Excel/CSV, or Text) to Spec, 4-Quadrant Test Cases (.md/.csv), Live @playwright/cli Verification, SOLID Automation, and Anti-Greenwashing Bug Reporting.
+name: mate-flow-user-story
+description: >-
+  End-to-End Daily QA Workflow — From User Story (Atlassian/Jira MCP, Notion MCP, Excel/CSV, or Text) to Spec, 4-Quadrant Test Cases (.md/.csv), Live @playwright/cli Verification, SOLID Automation, and Anti-Greenwashing Bug Reporting.
 ---
 
 # 📋 Workflow: `/mate-flow-user-story` (User Story to E2E Automation & Triage)
@@ -46,8 +48,17 @@ flowchart LR
 ---
 
 ## Step 3: Validate Live Behavior with `@playwright/cli` (`mate-pw-recon`)
-1. Open the running application via `playwright-cli open <url>`.
-2. Inspect the ARIA tree (`playwright-cli snapshot`) and walk through the designed test cases (`HAPPY_PATH`, `BORDER_CASE`, `NEGATIVE_PATH`) interactively using `fill`, `click`, `select`, `eval`, `console`, and `network`.
+
+> ⚠️ **Pre-Flight Check (Handling Missing `@playwright/cli`):**  
+> Before executing `playwright-cli open`, check if `@playwright/cli` is installed in the project. If NOT installed, **STOP IMMEDIATELY** and ask the user:  
+> *"We don't have `playwright-cli` available in this project. How would you like to proceed?"*  
+> 1. **(Recommended) Install `@playwright/cli` now:** Run `npm install -D @playwright/cli` (or `npx mate-sdt setup-playwright`).  
+> 2. **Use an existing Browser MCP Server / Tool:** Navigate and snapshot via connected Playwright/Puppeteer MCP.  
+> 3. **Inspect Frontend Source Code directly (White-Box):** Discover UI elements and fields from source components (`src/`, `components/`).  
+> 4. **Provide DOM Snippets or Selectors Manually:** Prompt the user to paste target HTML/selectors.
+
+1. Open the running application via `playwright-cli open <url>` (or your selected fallback method).
+2. Inspect the ARIA tree (`playwright-cli snapshot` or MCP/DOM inspection) and walk through the designed test cases (`HAPPY_PATH`, `BORDER_CASE`, `NEGATIVE_PATH`) interactively using `fill`, `click`, `select`, `eval`, `console`, and `network`.
 3. Extract semantic locators (`getByRole`, `getByLabel`, `getByTestId`) and identify reusable `BaseComponent` vs. `BasePage` boundaries.
 4. Record the honest live result (`✅ PASS` vs. `❌ FAIL`) for each `TC-XX` in `docs/test-cases/TC-[module].md` and `.csv`.
 5. Close the CLI browser session (`playwright-cli close`).
@@ -87,3 +98,25 @@ flowchart LR
    - **Total Test Cases Designed (`N` across `Happy`, `Border`, `Negative`, `State`):** Breakdown of `[AUTOMATE_UI]`, `[AUTOMATE_API]`, `[MANUAL_TEST]` (with rationale), and `[EXPLORATORY_CHARTER]`.
    - **Passing Automated Tests (`✅ PASS`):** List of verified working scenarios.
    - **Failing Tests Exposing Real Bugs (`⚠️ KNOWN FAIL — test.fail()`):** Explicit callout of which User Story requirements failed, the generated `docs/bugs/BUG-*.md` file paths, and the exact `test.fail()` guards added to the suite.
+
+---
+
+## 🧵 Session Workbench & Black-Box Handoff Protocol
+
+1. **Start Isolated Session:** `npx mate-sdt session start <flow-id> --module=<module> --stage=<initial-stage>`
+2. **Record Raw Events (Window $K=5$):** `npx mate-sdt session event <flow-id> "[OBSERVED | ISO] ..."`
+3. **Stage Transition (Auto-Compaction + `mate.handoff/v1`):** `npx mate-sdt session advance <flow-id> --stage=<next> --to=<next-skill> --digest="..."`
+4. **JIT Context & Consolidation:** Run `npx mate-sdt context <module>` before each stage and `npx mate-sdt context <module> --consolidate` + `npx mate-sdt gate` at completion.
+
+---
+
+## ⚙️ Execution Plan, Closed-Loop Gate & Independent Review
+
+1. **Persist Execution Plan:** Create/update `.mate/exec-plans/active/<flow-id>.md` (move to `.mate/exec-plans/completed/` upon completion).
+2. **Closed-Loop Verification:** Run `npx mate-sdt gate --loop` (max 5 iterations) and `npx mate-sdt gc` to refresh `docs/QUALITY_SCORE.md`.
+3. **Independent Agent Review Pass:** Trigger an independent reviewer pass (`mate-core` / `mate-maintenance`) to audit the diff against `specs/<module>.mate-spec.md` and `docs/QUALITY_SCORE.md`.
+
+## Zero-Assumption Escalation & Sub-Agent Isolation Protocol
+
+- **Ask, Never Guess (`STATUS: BLOCKED_ON_USER_INPUT`):** Inspect local context (`MATE-PROJECT-MAP.md`, `specs/`, code) and live browser/API responses first. Never invent business thresholds, auth boundaries, or SLA numbers. Tag any genuine requirement gap as `[TBD: <exact question for PO/Dev/QA>]` inside `## Open Questions for Human QA`, finish all unblocked work, and halt when `npx mate-sdt validate` or `npx mate-sdt gate` returns `STATUS: BLOCKED_ON_USER_INPUT` to ask the human.
+- **Sub-Agent Context Isolation (`--subagent` & `mate.handoff/v1`):** When delegating to a sub-agent or running a multi-stage pipeline (Reader/Extractor -> Spec Scorer -> Code Writer -> Independent Reviewer), build a scoped prompt via `npx mate-sdt context <module> --subagent <skill-name>` (`.mate/subagent-prompt-<module>-<skill>.md`). Pass only the structured `mate.handoff/v1` digest between stages (or run `--compact` in single-agent IDEs) so raw exploratory noise never pollutes downstream context windows.

@@ -15,7 +15,7 @@ Execute this workflow when onboarding an existing/legacy repository or an undocu
 ## Step 1: Surface Reconnaissance (`mate-core`, `mate-pw-recon` & `mate-model`)
 Choose the appropriate reconnaissance path (or combine both):
 - **Path A (Source Code & Legacy Suite Scan):** Inspect `package.json` / `pom.xml` / `pyproject.toml`, API routing tables, controllers, ORM models, and existing manual/legacy test suites (`skills/mate-story-testcases/references/legacy-manual-migration.md`).
-- **Path B (Live Browser & Network Reconnaissance via `@playwright/cli`):** Activate `mate-pw-recon` (`playwright-cli open <url>`, `snapshot`, `network`) and follow `skills/mate-pw-recon/references/network-api-discovery.md` to inventory DOM elements, observe state transitions, and reverse-engineer backend API endpoints without executing destructive actions.
+- **Path B (Live Browser & Network Reconnaissance via `@playwright/cli`):** Verify `@playwright/cli` availability (if missing, STOP and ask the user whether to install it, use Browser MCP, inspect source code, or paste DOM). If available, activate `mate-pw-recon` (`playwright-cli open <url>`, `snapshot`, `network`) and follow `skills/mate-pw-recon/references/network-api-discovery.md` to inventory DOM elements, observe state transitions, and reverse-engineer backend API endpoints without executing destructive actions.
 
 ## Step 2: Initialize or Update `MATE-PROJECT-MAP.md` (`mate-core`)
 1. Run `npx mate-sdt init` if the project has not been initialized yet.
@@ -34,3 +34,25 @@ Choose the appropriate reconnaissance path (or combine both):
 1. Audit any existing test suite for flaky anti-patterns (`npx mate-sdt audit`).
 2. Automate and lock the P0 business invariants (`tests/e2e/` and `tests/api/`) so legacy refactoring cannot silently break production behavior.
 3. Run `npx mate-sdt context [module]` and `npx mate-sdt gate` to verify all 5 Harness Engineering gates (`GATE-01-CONTEXT` through `GATE-04-SOLID-AUDIT` + `.mate/harness-state.json`).
+
+---
+
+## 🧵 Session Workbench & Black-Box Handoff Protocol
+
+1. **Start Isolated Session:** `npx mate-sdt session start <flow-id> --module=<module> --stage=<initial-stage>`
+2. **Record Raw Events (Window $K=5$):** `npx mate-sdt session event <flow-id> "[OBSERVED | ISO] ..."`
+3. **Stage Transition (Auto-Compaction + `mate.handoff/v1`):** `npx mate-sdt session advance <flow-id> --stage=<next> --to=<next-skill> --digest="..."`
+4. **JIT Context & Consolidation:** Run `npx mate-sdt context <module>` before each stage and `npx mate-sdt context <module> --consolidate` + `npx mate-sdt gate` at completion.
+
+---
+
+## ⚙️ Execution Plan, Closed-Loop Gate & Independent Review
+
+1. **Persist Execution Plan:** Create/update `.mate/exec-plans/active/<flow-id>.md` (move to `.mate/exec-plans/completed/` upon completion).
+2. **Closed-Loop Verification:** Run `npx mate-sdt gate --loop` (max 5 iterations) and `npx mate-sdt gc` to refresh `docs/QUALITY_SCORE.md`.
+3. **Independent Agent Review Pass:** Trigger an independent reviewer pass (`mate-core` / `mate-maintenance`) to audit the diff against `specs/<module>.mate-spec.md` and `docs/QUALITY_SCORE.md`.
+
+## Zero-Assumption Escalation & Sub-Agent Isolation Protocol
+
+- **Ask, Never Guess (`STATUS: BLOCKED_ON_USER_INPUT`):** Inspect local context (`MATE-PROJECT-MAP.md`, `specs/`, code) and live browser/API responses first. Never invent business thresholds, auth boundaries, or SLA numbers. Tag any genuine requirement gap as `[TBD: <exact question for PO/Dev/QA>]` inside `## Open Questions for Human QA`, finish all unblocked work, and halt when `npx mate-sdt validate` or `npx mate-sdt gate` returns `STATUS: BLOCKED_ON_USER_INPUT` to ask the human.
+- **Sub-Agent Context Isolation (`--subagent` & `mate.handoff/v1`):** When delegating to a sub-agent or running a multi-stage pipeline (Reader/Extractor -> Spec Scorer -> Code Writer -> Independent Reviewer), build a scoped prompt via `npx mate-sdt context <module> --subagent <skill-name>` (`.mate/subagent-prompt-<module>-<skill>.md`). Pass only the structured `mate.handoff/v1` digest between stages (or run `--compact` in single-agent IDEs) so raw exploratory noise never pollutes downstream context windows.

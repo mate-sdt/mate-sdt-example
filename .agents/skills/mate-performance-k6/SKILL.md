@@ -27,6 +27,28 @@ This skill governs **Non-Functional Oracles (`<performance_oracles>`)** in the M
 
 ---
 
+## ❓ 0. Pre-Flight Check: Handling Missing Performance Tooling (Podman / k6)
+
+Before attempting to execute a performance test, verify whether a container engine (Podman) or native `k6` is available:
+
+> [!IMPORTANT]
+> **If NEITHER Podman NOR native `k6` is installed:**  
+> **NEVER fail silently or guess performance metrics.**  
+> **STOP IMMEDIATELY and raise this explicit multiple-choice question to the human user/tester:**
+>
+> > *"We don't have Grafana k6 or a container engine (Podman) available in this environment. How would you like to proceed?"*
+> >
+> > 1. **(Recommended) Install native `k6`:**  
+> >    - Windows: `winget install k6 --source winget` or `choco install k6`  
+> >    - macOS: `brew install k6`  
+> >    - Linux (Ubuntu/Debian): `sudo apt-get install k6`  
+> > 2. **Install rootless Podman (for zero-install container runner):**  
+> >    Install Podman (`winget install RedHat.Podman-Desktop` / `brew install podman`) to run k6 in ephemeral containers without host toolchain installation.  
+> > 3. **Skip Performance Testing for now:**  
+> >    Keep the `tests/nfr/*.k6.js` script authored, mark performance as pending in `docs/test-plans/`, and defer execution to CI/CD pipelines where k6 or container runtimes exist.
+
+---
+
 ## 📈 Load Profile Selection Matrix
 
 | Profile Type | Purpose | VU / Arrival Pattern | Typical Duration | When to Use |
@@ -48,21 +70,39 @@ Every k6 script in `tests/nfr/*.k6.js` must bind directly to the SLAs declared i
 
 ---
 
-## 🐳 Execution in Rootless Podman
+## 🐳 Dual-Engine Execution: Container Runner & Native Host Fallback
 
-Run k6 scripts in isolated containers via the M.A.T.E. CLI:
+Run k6 scripts seamlessly via the M.A.T.E. CLI (`npx mate-sdt k6`):
 
-```bash
-npx mate-sdt k6 tests/nfr/load.k6.js
-```
+1. **Automatic Container Runner (Zero-Install):** If Podman or Docker is installed, runs inside `grafana/k6:latest` ephemeral container:
+   ```bash
+   npx mate-sdt k6 tests/nfr/load.k6.js
+   ```
+2. **Native Host Fallback:** If a container engine is not detected, `npx mate-sdt k6` automatically detects and uses your local native `k6` installation.
+3. **Manual Direct Invocations:**
+   ```bash
+   # Direct Container Runner (Podman):
+   podman run --rm -i -v $(pwd):/app:Z -w /app grafana/k6 run tests/nfr/load.k6.js
 
-Or directly via Podman:
-```bash
-podman run --rm -i -v $(pwd):/app:Z -w /app grafana/k6 run tests/nfr/load.k6.js
-```
+   # Direct Native Host:
+   k6 run tests/nfr/load.k6.js
+   ```
 
 ---
 
 ## 📦 Reference Boilerplate
 
 *   **Modular k6 Load Template:** [`resources/k6-load.template.js`](./resources/k6-load.template.js)
+
+---
+
+## 🔄 Black-Box Handoff & Session Isolation
+
+- **Separate Individual Histories:** Never pass raw multi-turn scratchpads or verbose upstream tool logs into this skill or out to downstream skills.
+- **Consume & Emit `mate.handoff/v1`:** Read only the compressed upstream handoff digest + `npx mate-sdt context <module>` JIT pack, and advance stages via `npx mate-sdt session advance <flow-id> --stage=<next> --to=<skill> --digest="..."`.
+- **Provenance & Hygiene:** Tag findings with `[BOOTSTRAPPED]`, `[USER_EXPLICIT]`, `[OBSERVED | ISO]`, `[INFERRED]`, or `[TBD]`; promote verified facts via `npx mate-sdt context <module> --consolidate`.
+
+## Zero-Assumption Escalation & Sub-Agent Isolation Protocol
+
+- **Ask, Never Guess (`STATUS: BLOCKED_ON_USER_INPUT`):** Inspect local context (`MATE-PROJECT-MAP.md`, `specs/`, code) and live browser/API responses first. Never invent business thresholds, auth boundaries, or SLA numbers. Tag any genuine requirement gap as `[TBD: <exact question for PO/Dev/QA>]` inside `## Open Questions for Human QA`, finish all unblocked work, and halt when `npx mate-sdt validate` or `npx mate-sdt gate` returns `STATUS: BLOCKED_ON_USER_INPUT` to ask the human.
+- **Sub-Agent Context Isolation (`--subagent` & `mate.handoff/v1`):** When delegating to a sub-agent or running a multi-stage pipeline (Reader/Extractor -> Spec Scorer -> Code Writer -> Independent Reviewer), build a scoped prompt via `npx mate-sdt context <module> --subagent <skill-name>` (`.mate/subagent-prompt-<module>-<skill>.md`). Pass only the structured `mate.handoff/v1` digest between stages (or run `--compact` in single-agent IDEs) so raw exploratory noise never pollutes downstream context windows.

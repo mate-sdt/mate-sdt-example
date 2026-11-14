@@ -41,6 +41,14 @@ Never paste raw `#Ran Playwright code` lines directly into `tests/e2e/*.spec.ts`
 
 Always register every new Page Object, Component Object, and Fixture inside **`MATE-PROJECT-MAP.md`** so future sessions reuse them instead of duplicating classes.
 
+> [!TIP]
+> **Operating Without `@playwright/cli` (Fallback Mode):**  
+> If the user chose not to install `@playwright/cli` (opting instead for Source Code Inspection, a Browser MCP, or manual DOM snippets), this 4-layer pipeline operates identically: discover locators from the available source (`page.getByRole`, `page.getByLabel`, `page.getByTestId`), encapsulate them in `src/pages/*.page.ts` and `src/components/*.component.ts`, and wire them through fixtures. The resulting `@playwright/test` code does NOT require `@playwright/cli` to run.
+
+> [!CAUTION]
+> **Zero Direct Locators or Actions in Test Specs (`MATE-ANTI-08` CRITICAL):**  
+> Never inject `{ page }` into a test spec to write inline `page.getByRole()`, `page.getByTestId()`, `page.fill()`, or `page.goto()`. If a user story covers a new page or modal (e.g., Customer Registration, Multi-step Checkout, Admin Management), you **MUST** create the Page Object (`src/pages/<domain>.page.ts`) extending `BasePage`, encapsulate all locators and methods inside it, inject it via `src/fixtures/mate.fixtures.ts`, and interact solely through the fixture. Any direct `page` locator or action in a `.spec.ts` triggers `MATE-ANTI-08` (`CRITICAL`), failing `GATE-04-SOLID-AUDIT` with exit code 1.
+
 ---
 
 ## 🚨 2. Anti-Greenwashing Codegen Rule (Handling Failing Tests)
@@ -74,3 +82,16 @@ Load these references on demand when generating code, managing auth state, or mo
 * **[Storage State & Dependency Inversion Auth (`storage-state.md`)](./references/storage-state.md)** — Using `playwright-cli state-save`, cookies, and `localStorage` and wiring them into `src/fixtures/mate.fixtures.ts`.
 * **[Network Mocking & Fault Injection (`request-mocking.md`)](./references/request-mocking.md)** — Using `playwright-cli route` to simulate `500`/`429`/corrupt payloads and encapsulating mocks in `src/mocks/<domain>.mock.ts`.
 * **[Running, Filtering & Debugging Playwright Tests (`playwright-tests.md`)](./references/playwright-tests.md)** — Tag execution (`@p0`), attaching `playwright-cli` to a paused test via `PLAYWRIGHT_CLI_SESSION`, and self-healing locators.
+
+---
+
+## 🔄 Black-Box Handoff & Session Isolation
+
+- **Separate Individual Histories:** Never pass raw multi-turn scratchpads or verbose upstream tool logs into this skill or out to downstream skills.
+- **Consume & Emit `mate.handoff/v1`:** Read only the compressed upstream handoff digest + `npx mate-sdt context <module>` JIT pack, and advance stages via `npx mate-sdt session advance <flow-id> --stage=<next> --to=<skill> --digest="..."`.
+- **Provenance & Hygiene:** Tag findings with `[BOOTSTRAPPED]`, `[USER_EXPLICIT]`, `[OBSERVED | ISO]`, `[INFERRED]`, or `[TBD]`; promote verified facts via `npx mate-sdt context <module> --consolidate`.
+
+## Zero-Assumption Escalation & Sub-Agent Isolation Protocol
+
+- **Ask, Never Guess (`STATUS: BLOCKED_ON_USER_INPUT`):** Inspect local context (`MATE-PROJECT-MAP.md`, `specs/`, code) and live browser/API responses first. Never invent business thresholds, auth boundaries, or SLA numbers. Tag any genuine requirement gap as `[TBD: <exact question for PO/Dev/QA>]` inside `## Open Questions for Human QA`, finish all unblocked work, and halt when `npx mate-sdt validate` or `npx mate-sdt gate` returns `STATUS: BLOCKED_ON_USER_INPUT` to ask the human.
+- **Sub-Agent Context Isolation (`--subagent` & `mate.handoff/v1`):** When delegating to a sub-agent or running a multi-stage pipeline (Reader/Extractor -> Spec Scorer -> Code Writer -> Independent Reviewer), build a scoped prompt via `npx mate-sdt context <module> --subagent <skill-name>` (`.mate/subagent-prompt-<module>-<skill>.md`). Pass only the structured `mate.handoff/v1` digest between stages (or run `--compact` in single-agent IDEs) so raw exploratory noise never pollutes downstream context windows.

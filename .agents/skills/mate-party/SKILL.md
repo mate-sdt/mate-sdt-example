@@ -25,7 +25,7 @@ When `mate-party` activates, it convenes only the expert voices relevant to the 
 
 1. 🧉 **Tony / The Quality Strategist (`mate-strategy` perspective):**
    - *Mindset:* Business risk, ROI of time, team capacity, and pragmatic realism ("Testing != Checking").
-   - *Key Question:* *"Is this a P0 that can sink the business, or a low-value test we shouldn't waste automation hours on?"*
+   - *Key Question:* *"Is this a P0 that can sink the business, or a low-value test we shouldn't waste automation hours on? Have we designed test cases first so we know what to automate vs. test manually?"*
 2. 🕵️ **The Exploratory Sleuth (`mate-explore` & `mate-story-testcases` perspective):**
    - *Mindset:* Rapid Software Testing (RST) heuristics, human empathy, user personas, visual nuances, and exploratory charters.
    - *Key Question:* *"What weird edge case or human emotion will break this? What should an exploratory tester poke with their own hands?"*
@@ -67,7 +67,7 @@ Synthesize the discussion into an immediate, actionable output using the format 
 1. **Diagnosis & Scope:** Executive summary of the challenge.
 2. **Sub-Agent Delegation Plan (`[PARALLEL_SUBAGENT_ELIGIBLE]`):** If the host assistant supports sub-agents (Antigravity `invoke_subagent`, Claude Code `Agent`), spawn isolated sub-threads for browser recon or test case matrices so the main thread never suffers context bloat (see [`docs/SUBAGENTS_AND_PARALLEL_EXECUTION.md`](../../docs/SUBAGENTS_AND_PARALLEL_EXECUTION.md)).
 3. **Human Team to Consult:** Who to ping on Slack/Teams (e.g., "Ask the Backend Dev for the OpenAPI spec", "Ask Product for the refund limit").
-4. **M.A.T.E. Skill & Workflow Sequence:** Ordered path (e.g., `mate-pw-recon` ➔ `mate-story-testcases` ➔ `mate-assert-playwright`).
+4. **M.A.T.E. Skill & Workflow Sequence:** Ordered path (e.g., `mate-strategy` ➔ `mate-story-testcases` [mandatory before code] ➔ `mate-pw-recon` ➔ `mate-assert-playwright`).
 5. **Immediate Next Step & CLI Commands:** Ready-to-copy commands (e.g., `npx mate-sdt context checkout` or `/mate-flow-user-story`).
 
 ---
@@ -88,3 +88,22 @@ Synthesize the discussion into an immediate, actionable output using the format 
 ## 📚 Reference Resources
 - [`references/party-moderation-guide.md`](./references/party-moderation-guide.md) — Detailed guide for moderating multi-voice agentic deliberations.
 - [`resources/party-verdict.template.md`](./resources/party-verdict.template.md) — Standard markdown output template for Party Mode verdicts.
+
+---
+
+## 🔄 Black-Box Handoff & Session Isolation
+
+- **Separate Individual Histories:** Never pass raw multi-turn scratchpads or verbose upstream tool logs into this skill or out to downstream skills.
+- **Consume & Emit `mate.handoff/v1`:** Read only the compressed upstream handoff digest + `npx mate-sdt context <module>` JIT pack, and advance stages via `npx mate-sdt session advance <flow-id> --stage=<next> --to=<skill> --digest="..."`.
+- **Provenance & Hygiene:** Tag findings with `[BOOTSTRAPPED]`, `[USER_EXPLICIT]`, `[OBSERVED | ISO]`, `[INFERRED]`, or `[TBD]`; promote verified facts via `npx mate-sdt context <module> --consolidate`.
+
+---
+
+## 🚨 Automatic Stack-Trace & Failure Entry Point
+
+- Whenever the user pastes a raw stack trace, `TimeoutError`, `StrictModeViolation`, HTTP `4xx/5xx` mismatch, or says *"fix this"* / *"heal this test"* / *"why did this fail?"*, **route immediately to `mate-triage` + `npx mate-sdt heal` (`/mate-flow-triage`)**.
+
+## Zero-Assumption Escalation & Sub-Agent Isolation Protocol
+
+- **Ask, Never Guess (`STATUS: BLOCKED_ON_USER_INPUT`):** Inspect local context (`MATE-PROJECT-MAP.md`, `specs/`, code) and live browser/API responses first. Never invent business thresholds, auth boundaries, or SLA numbers. Tag any genuine requirement gap as `[TBD: <exact question for PO/Dev/QA>]` inside `## Open Questions for Human QA`, finish all unblocked work, and halt when `npx mate-sdt validate` or `npx mate-sdt gate` returns `STATUS: BLOCKED_ON_USER_INPUT` to ask the human.
+- **Sub-Agent Context Isolation (`--subagent` & `mate.handoff/v1`):** When delegating to a sub-agent or running a multi-stage pipeline (Reader/Extractor -> Spec Scorer -> Code Writer -> Independent Reviewer), build a scoped prompt via `npx mate-sdt context <module> --subagent <skill-name>` (`.mate/subagent-prompt-<module>-<skill>.md`). Pass only the structured `mate.handoff/v1` digest between stages (or run `--compact` in single-agent IDEs) so raw exploratory noise never pollutes downstream context windows.

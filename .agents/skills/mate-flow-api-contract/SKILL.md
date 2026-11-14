@@ -1,0 +1,61 @@
+---
+name: mate-flow-api-contract
+description: >-
+  End-to-End M.A.T.E. API & Contract Testing Workflow: Transforms OpenAPI/Swagger schemas
+  or backend routes into a validated MATE-SPEC.md, generates typed SOLID API Clients,
+  and executes contract, authz, idempotency, and payload fuzzing suites.
+---
+
+# 🔌 E2E Workflow: API Contract & Fuzzing Suite (`/mate-flow-api-contract`)
+
+Execute this workflow to establish comprehensive API and service-level quality governance.
+
+---
+
+## Step 1: Contract Ingestion & Uncertainty Check (`mate-model`)
+1. Read `MATE-PROJECT-MAP.md`.
+2. Ingest the OpenAPI/Swagger specification (`openapi.yaml` / `swagger.json`) or backend route definitions.
+3. If auth mechanisms, rate limits, or enum constraints are missing, apply the **Handling Uncertainty Protocol** and ask the user or mark `[TBD]`.
+
+## Step 2: Author & Validate the Contract Spec (`mate-model`)
+1. Create or update `specs/[service].mate-spec.md` defining:
+   - Entity state transitions and **Explicitly Forbidden Transitions** (`409 Conflict` / `422`).
+   - Strict JSON request/response contracts.
+   - Mathematical invariants (`INV-XX`) and idempotency/fuzzing threats (`THR-XX`).
+2. Run `npx mate-sdt validate specs/[service].mate-spec.md`.
+
+## Step 3: Build Typed API Clients & Contract Matrix (`mate-assert-api`)
+1. Create a typed API Client in `src/api/[service].client.ts` extending `BaseApiClient`.
+2. Register the client as an injectable fixture in `src/fixtures/`.
+3. Generate contract tests in `tests/api/[service].spec.ts` covering:
+   - `200/201` schema compliance
+   - `400/422` missing required fields & boundary violations
+   - `401/403` authentication & BOLA authorization checks
+   - `409/422` forbidden state machine transitions
+
+## Step 4: Adversarial API Fuzzing & Idempotency (`mate-threat`)
+1. Generate concurrency and duplicate `Idempotency-Key` replay tests in `tests/threats/[service]-threats.spec.ts`.
+2. Inject malformed UTF-8, oversized payloads, and SQLi/XSS strings, asserting clean `422` responses and zero `500` stack-trace leaks.
+3. Run `npx mate-sdt audit` to verify suite health.
+
+---
+
+## 🧵 Session Workbench & Black-Box Handoff Protocol
+
+1. **Start Isolated Session:** `npx mate-sdt session start <flow-id> --module=<module> --stage=<initial-stage>`
+2. **Record Raw Events (Window $K=5$):** `npx mate-sdt session event <flow-id> "[OBSERVED | ISO] ..."`
+3. **Stage Transition (Auto-Compaction + `mate.handoff/v1`):** `npx mate-sdt session advance <flow-id> --stage=<next> --to=<next-skill> --digest="..."`
+4. **JIT Context & Consolidation:** Run `npx mate-sdt context <module>` before each stage and `npx mate-sdt context <module> --consolidate` + `npx mate-sdt gate` at completion.
+
+---
+
+## ⚙️ Execution Plan, Closed-Loop Gate & Independent Review
+
+1. **Persist Execution Plan:** Create/update `.mate/exec-plans/active/<flow-id>.md` (move to `.mate/exec-plans/completed/` upon completion).
+2. **Closed-Loop Verification:** Run `npx mate-sdt gate --loop` (max 5 iterations) and `npx mate-sdt gc` to refresh `docs/QUALITY_SCORE.md`.
+3. **Independent Agent Review Pass:** Trigger an independent reviewer pass (`mate-core` / `mate-maintenance`) to audit the diff against `specs/<module>.mate-spec.md` and `docs/QUALITY_SCORE.md`.
+
+## Zero-Assumption Escalation & Sub-Agent Isolation Protocol
+
+- **Ask, Never Guess (`STATUS: BLOCKED_ON_USER_INPUT`):** Inspect local context (`MATE-PROJECT-MAP.md`, `specs/`, code) and live browser/API responses first. Never invent business thresholds, auth boundaries, or SLA numbers. Tag any genuine requirement gap as `[TBD: <exact question for PO/Dev/QA>]` inside `## Open Questions for Human QA`, finish all unblocked work, and halt when `npx mate-sdt validate` or `npx mate-sdt gate` returns `STATUS: BLOCKED_ON_USER_INPUT` to ask the human.
+- **Sub-Agent Context Isolation (`--subagent` & `mate.handoff/v1`):** When delegating to a sub-agent or running a multi-stage pipeline (Reader/Extractor -> Spec Scorer -> Code Writer -> Independent Reviewer), build a scoped prompt via `npx mate-sdt context <module> --subagent <skill-name>` (`.mate/subagent-prompt-<module>-<skill>.md`). Pass only the structured `mate.handoff/v1` digest between stages (or run `--compact` in single-agent IDEs) so raw exploratory noise never pollutes downstream context windows.

@@ -2,7 +2,7 @@
 name: mate-flow-greenfield
 description: >-
   End-to-End M.A.T.E. Greenfield Workflow: Orchestrates a new feature from initial idea
-  to validated MATE-SPEC.md, SOLID Playwright/API test generation, Podman Mutation Testing (>=85%),
+  to validated MATE-SPEC.md, SOLID Playwright/API test generation, Adversarial Threat & Chaos Verification,
   and Human Exploratory Charter sign-off.
 ---
 
@@ -26,21 +26,38 @@ Execute this step-by-step workflow when building or testing a new feature from s
    ```
 5. Once valid and approved by the user, set `status: APPROVED` and register the module in `MATE-PROJECT-MAP.md`.
 
+## Step 2b: Pillar C — 4-Quadrant Test Case Design & Decision Engine (`mate-story-testcases`)
+> **⚠️ Test-Design-First Mandate (`MATE-INVARIANT-08`):** Never jump straight from specs to code! You must first design the test case matrix to establish full coverage and decide what to automate at UI vs API vs keep manual or exploratory.
+
+1. Generate the dual QA Companion Test Case Matrix:
+   ```bash
+   npx mate-sdt cases [module]
+   ```
+   This scaffolds:
+   - `docs/test-cases/TC-[module].md` (Traceable markdown companion with rationale and manual execution guides)
+   - `docs/test-cases/TC-[module].csv` (CSV ready for Jira/Xray/Notion import)
+2. Ensure mandatory coverage across all 4 quadrants (`HAPPY_PATH`, `BORDER_CASE`, `NEGATIVE_PATH`, `STATE_TRANSITION`).
+3. Classify every scenario via the **Pragmatic Execution Mode Decision Engine**:
+   - `[AUTOMATE_UI]`: High-ROI user journeys & DOM state transitions (implemented in Step 3).
+   - `[AUTOMATE_API]`: Boundary values, contract schemas, status codes (implemented in Step 3).
+   - `[MANUAL_TEST]`: Visual rendering, external/PDF flows (documented with step-by-step instructions for human QA).
+   - `[EXPLORATORY_CHARTER]`: Edge cases & heuristics (scheduled and executed in Step 5).
+
 ## Step 3: Pillar A — Assert UI & API Invariants (`mate-assert-playwright` & `mate-assert-api`)
 1. Generate or extend SOLID Page Objects (`src/pages/`), Component Objects (`src/components/`), Typed API Clients (`src/api/`), and Dependency Inversion fixtures (`src/fixtures/`).
-2. Implement deterministic P0/P1 invariant tests in `tests/e2e/` and `tests/api/`.
+2. Implement deterministic P0/P1 invariant tests in `tests/e2e/` and `tests/api/` tracing back to the `[AUTOMATE_UI]` and `[AUTOMATE_API]` cases in `docs/test-cases/TC-[module].md`.
 3. Run the static health audit to guarantee zero `waitForTimeout` sleeps or DIP violations:
    ```bash
    npx mate-sdt audit
    ```
 
-## Step 4: Pillar T — Adversarial Threats & Podman Mutation (`mate-threat`)
+## Step 4: Pillar T — Adversarial Threats & Chaos Testing (`mate-threat`)
 1. Implement concurrency, double-click idempotency, and payload fuzzing suites in `tests/threats/`.
-2. Execute Stryker Mutation Testing inside a rootless Podman container:
+2. Run the adversarial threat suite:
    ```bash
-   npx mate-sdt mutate
+   npx playwright test tests/threats/
    ```
-3. Verify that the **Mutation Score is `>= 85%`**. If mutants survive, strengthen test assertions until the threshold passes.
+3. Verify that all race conditions, injection attempts, and boundary attacks are properly mitigated and rejected by business invariants.
 
 ## Step 5: Pillar E — Human Exploration & Release Verdict (`mate-explore`)
 1. Generate a time-boxed Session-Based Test Management (SBTM) charter:
@@ -48,3 +65,25 @@ Execute this step-by-step workflow when building or testing a new feature from s
    npx mate-sdt charter [module]
    ```
 2. After the human Quality Engineer completes exploratory & WCAG 2.1 AA testing, run the **5-Gate Harness Verification Loop** (`npx mate-sdt gate`) and record the formal Release Verdict (`[PASS]`, `[CONCERNS]` with `npx mate-sdt waiver [module]`, or `[FAIL]`) in `MATE-PROJECT-MAP.md`.
+
+---
+
+## 🧵 Session Workbench & Black-Box Handoff Protocol
+
+1. **Start Isolated Session:** `npx mate-sdt session start <flow-id> --module=<module> --stage=<initial-stage>`
+2. **Record Raw Events (Window $K=5$):** `npx mate-sdt session event <flow-id> "[OBSERVED | ISO] ..."`
+3. **Stage Transition (Auto-Compaction + `mate.handoff/v1`):** `npx mate-sdt session advance <flow-id> --stage=<next> --to=<next-skill> --digest="..."`
+4. **JIT Context & Consolidation:** Run `npx mate-sdt context <module>` before each stage and `npx mate-sdt context <module> --consolidate` + `npx mate-sdt gate` at completion.
+
+---
+
+## ⚙️ Execution Plan, Closed-Loop Gate & Independent Review
+
+1. **Persist Execution Plan:** Create/update `.mate/exec-plans/active/<flow-id>.md` (move to `.mate/exec-plans/completed/` upon completion).
+2. **Closed-Loop Verification:** Run `npx mate-sdt gate --loop` (max 5 iterations) and `npx mate-sdt gc` to refresh `docs/QUALITY_SCORE.md`.
+3. **Independent Agent Review Pass:** Trigger an independent reviewer pass (`mate-core` / `mate-maintenance`) to audit the diff against `specs/<module>.mate-spec.md` and `docs/QUALITY_SCORE.md`.
+
+## Zero-Assumption Escalation & Sub-Agent Isolation Protocol
+
+- **Ask, Never Guess (`STATUS: BLOCKED_ON_USER_INPUT`):** Inspect local context (`MATE-PROJECT-MAP.md`, `specs/`, code) and live browser/API responses first. Never invent business thresholds, auth boundaries, or SLA numbers. Tag any genuine requirement gap as `[TBD: <exact question for PO/Dev/QA>]` inside `## Open Questions for Human QA`, finish all unblocked work, and halt when `npx mate-sdt validate` or `npx mate-sdt gate` returns `STATUS: BLOCKED_ON_USER_INPUT` to ask the human.
+- **Sub-Agent Context Isolation (`--subagent` & `mate.handoff/v1`):** When delegating to a sub-agent or running a multi-stage pipeline (Reader/Extractor -> Spec Scorer -> Code Writer -> Independent Reviewer), build a scoped prompt via `npx mate-sdt context <module> --subagent <skill-name>` (`.mate/subagent-prompt-<module>-<skill>.md`). Pass only the structured `mate.handoff/v1` digest between stages (or run `--compact` in single-agent IDEs) so raw exploratory noise never pollutes downstream context windows.

@@ -58,16 +58,15 @@ test.describe('MOD-01: User Registration & Password Strength', () => {
     await registerPage.passwordStrength.assertLevel('Excellent');
   });
 
-  test('TC-REG-04: Missing Mandatory Fields Blocks Submission @p0', async ({ registerPage, page }) => {
+  test('TC-REG-04: Missing Mandatory Fields Blocks Submission @p0', async ({ registerPage }) => {
     await registerPage.goto();
     await registerPage.submit();
 
     // Verify form does not submit and stays on registration page
     await registerPage.assertUrl(/.*auth\/register.*/);
 
-    // Verify HTML5 / Angular invalid control state on mandatory fields
-    const invalidInputs = page.locator('input:invalid, .is-invalid');
-    await expect(invalidInputs.first()).toBeVisible({ timeout: 5000 });
+    // Verify HTML5 / Angular invalid control state on mandatory fields via POM
+    await expect(registerPage.fieldErrors.first()).toBeVisible({ timeout: 5000 });
   });
 
   test('TC-REG-06: Duplicate Email Registration Rejection @p0', async ({ registerPage }) => {

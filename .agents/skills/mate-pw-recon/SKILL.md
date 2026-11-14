@@ -35,6 +35,28 @@ This skill governs **Phase 1 of `@playwright/cli` in M.A.T.E.**: using the brows
 
 ---
 
+## ❓ 0. Pre-Flight Check: Handling Missing `@playwright/cli` (Graceful Fallback Protocol)
+
+Before executing any `playwright-cli open` or reconnaissance command, verify whether `@playwright/cli` is available (e.g., check `node_modules/@playwright/cli` or execute `npx playwright-cli --version`).
+
+> [!IMPORTANT]
+> **If `@playwright/cli` is NOT installed:**  
+> **NEVER fail silently, hallucinate execution, or get trapped in an endless command retry loop.**  
+> **STOP IMMEDIATELY and raise this explicit multiple-choice question to the human user/tester:**
+>
+> > *"We don't have `playwright-cli` available in this project. How would you like to proceed?"*
+> >
+> > 1. **(Recommended) Install `@playwright/cli` now:**  
+> >    Run `npm install -D @playwright/cli` (or `npx mate-sdt setup-playwright`) to enable live terminal browser exploration, ARIA snapshots (`playwright-cli snapshot`), and interactive locator discovery.
+> > 2. **Use an existing Browser MCP Server / Tool:**  
+> >    Use an active Browser MCP server (e.g., Playwright MCP, Puppeteer MCP, or IDE browser tool) connected to your AI environment to navigate the URL and capture DOM/accessibility snapshots.
+> > 3. **Inspect Frontend Source Code directly (White-Box):**  
+> >    Skip live browser exploration and discover UI elements, form fields, and routes directly from source code components (`src/`, `components/`, JSX/TSX/HTML templates).
+> > 4. **Provide DOM Snippets or Selectors Manually:**  
+> >    Paste the relevant HTML snippet, DOM elements, or target selectors directly into the chat so the agent can build the Page Objects without live browser access.
+
+---
+
 ## ⚡ 1. Core Recon & Interactive Verification Commands (`@playwright/cli`)
 
 ```bash
@@ -104,3 +126,16 @@ Load these references on demand when inspecting complex DOM properties, reverse-
 * **[Black-Box Network API Reverse-Engineering](./references/network-api-discovery.md)** — Using `playwright-cli network` and `run-code` to discover hidden backend API endpoints, headers, and JSON schemas when Backend has no Swagger/OpenAPI docs.
 * **[DOM Attributes, Computed Styles & WCAG Inspection](./references/element-attributes.md)** — Using `playwright-cli eval` to inspect attributes, bounding boxes, and accessibility states.
 * **[Running Custom Playwright Code (`run-code`)](./references/running-code.md)** — Probing geolocation, clipboard, permissions, file downloads, and WebSockets during live recon.
+
+---
+
+## 🔄 Black-Box Handoff & Session Isolation
+
+- **Separate Individual Histories:** Never pass raw multi-turn scratchpads or verbose upstream tool logs into this skill or out to downstream skills.
+- **Consume & Emit `mate.handoff/v1`:** Read only the compressed upstream handoff digest + `npx mate-sdt context <module>` JIT pack, and advance stages via `npx mate-sdt session advance <flow-id> --stage=<next> --to=<skill> --digest="..."`.
+- **Provenance & Hygiene:** Tag findings with `[BOOTSTRAPPED]`, `[USER_EXPLICIT]`, `[OBSERVED | ISO]`, `[INFERRED]`, or `[TBD]`; promote verified facts via `npx mate-sdt context <module> --consolidate`.
+
+## Zero-Assumption Escalation & Sub-Agent Isolation Protocol
+
+- **Ask, Never Guess (`STATUS: BLOCKED_ON_USER_INPUT`):** Inspect local context (`MATE-PROJECT-MAP.md`, `specs/`, code) and live browser/API responses first. Never invent business thresholds, auth boundaries, or SLA numbers. Tag any genuine requirement gap as `[TBD: <exact question for PO/Dev/QA>]` inside `## Open Questions for Human QA`, finish all unblocked work, and halt when `npx mate-sdt validate` or `npx mate-sdt gate` returns `STATUS: BLOCKED_ON_USER_INPUT` to ask the human.
+- **Sub-Agent Context Isolation (`--subagent` & `mate.handoff/v1`):** When delegating to a sub-agent or running a multi-stage pipeline (Reader/Extractor -> Spec Scorer -> Code Writer -> Independent Reviewer), build a scoped prompt via `npx mate-sdt context <module> --subagent <skill-name>` (`.mate/subagent-prompt-<module>-<skill>.md`). Pass only the structured `mate.handoff/v1` digest between stages (or run `--compact` in single-agent IDEs) so raw exploratory noise never pollutes downstream context windows.

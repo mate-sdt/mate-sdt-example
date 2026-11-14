@@ -23,11 +23,11 @@ test.describe('MOD-03: Product Overview', () => {
     }
   });
 
-  test('TC-OVR-02: Clicking a product card opens its detail page @p0', async ({ catalogPage }) => {
+  test('TC-OVR-02: Clicking a product card opens its detail page @p0', async ({ catalogPage, productDetailPage }) => {
     // AC2
     const name = await catalogPage.openFirstProduct();
     await catalogPage.assertUrl(/.*\/product\/.+/);
-    await expect(catalogPage.page.locator('[data-test="product-name"]')).toHaveText(name);
+    await expect(productDetailPage.productName).toHaveText(name);
   });
 
   test('TC-OVR-03: Pagination controls update the product grid @p1', async ({ catalogPage }) => {
@@ -138,8 +138,8 @@ test.describe('MOD-03: Product Overview', () => {
     }).toBe(true);
   });
 
-  test('TC-OVR-14: Sort by name A-Z and Z-A orders the grid alphabetically @p0', async ({ catalogPage }) => {
-    // AC9
+  test('TC-OVR-14: Sort by name A-Z and Z-A orders the grid alphabetically [INV-07] @p0', async ({ catalogPage }) => {
+    // AC9 / INV-07
     await catalogPage.selectSortOption('name,asc');
     await expect.poll(async () => isSortedBy(await catalogPage.getProductNames(), (a, b) => a.localeCompare(b))).toBe(true);
 
@@ -147,8 +147,8 @@ test.describe('MOD-03: Product Overview', () => {
     await expect.poll(async () => isSortedBy(await catalogPage.getProductNames(), (a, b) => b.localeCompare(a))).toBe(true);
   });
 
-  test('TC-OVR-15: Sort by price low-high and high-low orders the grid by price @p0', async ({ catalogPage }) => {
-    // AC9
+  test('TC-OVR-15: Sort by price low-high and high-low orders the grid by price [INV-07] @p0', async ({ catalogPage }) => {
+    // AC9 / INV-07
     await catalogPage.selectSortOption('price,asc');
     await expect.poll(async () => isSortedBy(await catalogPage.getProductPrices(), (a, b) => a - b)).toBe(true);
 

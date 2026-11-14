@@ -40,6 +40,7 @@ export class CheckoutPage extends BasePage {
 
   // Step 4: Payment
   readonly paymentMethodSelect: Locator;
+  readonly creditCardNumberInput: Locator;
   readonly finishButton: Locator;
   readonly orderConfirmation: Locator;
 
@@ -70,6 +71,7 @@ export class CheckoutPage extends BasePage {
 
     // Step 4
     this.paymentMethodSelect = page.locator('[data-test="payment-method"]');
+    this.creditCardNumberInput = page.locator('[data-test="credit_card_number"], input[name="credit_card_number"]');
     this.finishButton = page.locator('[data-test="finish"]');
     this.orderConfirmation = page.locator('[data-test="payment-success"], .alert-success, h2:has-text("Thanks"), h3:has-text("Confirmation")');
   }

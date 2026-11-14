@@ -15,14 +15,19 @@ When information is missing and the user is available:
 - **Missing Performance SLA:** *"What is the target P95 response time, maximum error rate, and peak Virtual Users (VUs) for this endpoint?"*
 - **Ambiguous State Transition:** *"Can an order transition from `PICKED_UP` to `CANCELLED`, or is cancellation strictly forbidden after pickup?"*
 - **Destructive Live Action:** *"Exploring this live page shows a 'Delete Account' button. Should I skip this interaction?"*
+- **Missing Tooling (`@playwright/cli`):** *"We don't have `playwright-cli` available in this project. How would you like to proceed? 1. (Recommended) Install `@playwright/cli` now, 2. Use an existing Browser MCP Server/Tool, 3. Inspect Frontend Source Code directly (White-Box), 4. Provide DOM Snippets or Selectors Manually."*
+- **Missing Performance Tooling (Podman / k6):** *"We don't have Grafana k6 or Podman available in this environment. How would you like to proceed? 1. (Recommended) Install native `k6` (`winget install k6` / `brew install k6`), 2. Install rootless Podman for container sandboxing, 3. Skip Performance Testing for now and defer to CI/CD."*
 
-## 3. Mark Unknowns Explicitly with `[TBD]`
-When generating a draft specification (`status: DRAFT` or `status: REVIEW`) without complete information:
-- Tag every gap clearly: `[TBD: needs confirmation from Product/Ops on X]`.
-- Aggregate all open questions in a dedicated **Assumptions & Open Questions** section so reviewers can resolve them before flipping the spec status to `APPROVED`.
+## 3. Mark Unknowns Explicitly with `[TBD]` & Escalate (`STATUS: BLOCKED_ON_USER_INPUT`)
+When generating a draft specification (`status: DRAFT` or `status: REVIEW`) or test case matrix (`docs/test-cases/TC-*.md`) without complete information:
+- Tag every gap clearly: `[TBD: <exact question for PO/Dev/QA>]`.
+- Aggregate all open questions in a dedicated **`## Open Questions for Human QA`** section in `specs/*.mate-spec.md` and `docs/test-cases/TC-*.md`.
+- **Complete Unblocked Work, Then HALT and Ask:** Finish modeling and automating the parts that are `[USER_EXPLICIT]` or `[OBSERVED]`, then immediately stop and present a numbered list of questions to the user.
+- **Mechanical Gate Enforcement (`STATUS: BLOCKED_ON_USER_INPUT`):** `npx mate-sdt validate` and `npx mate-sdt gate` (`GATE-01` & `GATE-02`) mechanically block any `[TBD]` or `[INFERRED]` tag inside `<invariants>` or `<intent_model>` with `STATUS: BLOCKED_ON_USER_INPUT`, halting `npx mate-sdt gate --loop` on iteration 1 so the agent asks the human instead of hallucinating a workaround.
 
-## 4. Document Evidence Confidence Levels
-Whenever reverse-engineering Brownfield code, exploring a live web page (`mate-model`), or triaging test failures (`mate-triage`), label findings with their confidence level:
-- **`[OBSERVED]` (High Confidence):** Directly verified via source code inspection, live Playwright browser interaction, or stack trace.
-- **`[INFERRED]` (Medium Confidence):** Deduced from UI patterns, naming conventions, or adjacent modules, but requires human verification.
-- **`[UNKNOWN / BLOCKED]`:** Could not be determined (e.g., requires production credentials or external third-party sandbox).
+## 4. Document Evidence Confidence Levels & Provenance Hierarchy
+Enforce strict epistemic provenance across all specs and memory (`[BOOTSTRAPPED] > [USER_EXPLICIT] > [OBSERVED | ISO-timestamp] > [INFERRED] / [TBD]`):
+- **`[BOOTSTRAPPED]` / `[USER_EXPLICIT]` (Canonical Authority):** Explicitly stated by the human QA/PO or validated User Story.
+- **`[OBSERVED | ISO-timestamp]` (Empirical Verification):** Directly verified via source code inspection, live `@playwright/cli` browser interaction, or stack trace.
+- **`[INFERRED]` (Medium Confidence — Blocked in Invariants):** Deduced from UI patterns, naming conventions, or adjacent modules; requires human confirmation before entering `<invariants>` or Page Objects.
+- **`[TBD: <question>]` (Unknown — Blocked in Invariants):** Missing requirement; must be escalated via `## Open Questions for Human QA`.

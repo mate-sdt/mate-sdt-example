@@ -130,10 +130,10 @@ test.describe('MOD-05 to MOD-08: Checkout & Payment Lifecycle', () => {
 
     // Switch to Credit Card, then to Cash on Delivery
     await checkoutPage.selectPaymentMethod('Credit Card');
-    await expect(checkoutPage.page.locator('[data-test="credit_card_number"], input[name="credit_card_number"]')).toBeVisible({ timeout: 5000 });
+    await expect(checkoutPage.creditCardNumberInput).toBeVisible({ timeout: 5000 });
 
     await checkoutPage.selectPaymentMethod('Cash on Delivery');
-    await expect(checkoutPage.page.locator('[data-test="credit_card_number"], input[name="credit_card_number"]')).toBeHidden({ timeout: 5000 });
+    await expect(checkoutPage.creditCardNumberInput).toBeHidden({ timeout: 5000 });
   });
 
 });

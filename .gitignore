@@ -18,3 +18,6 @@ playwright/.auth/
 # OS generated files
 .DS_Store
 Thumbs.db
+
+# M.A.T.E., Playwright & Security ignore rules
+.promptfoo/

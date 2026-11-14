@@ -65,7 +65,7 @@ export class RegisterPage extends BasePage {
     this.registerSubmitButton = page.locator('[data-test="register-submit"]');
     this.alertBanner = page.locator('[data-test="register-error"], [data-test="email-error"], .alert-danger');
     this.errorMessage = this.alertBanner;
-    this.fieldErrors = page.locator('.invalid-feedback, input:invalid');
+    this.fieldErrors = page.locator('.invalid-feedback, input:invalid, .is-invalid');
     this.passwordStrength = new PasswordStrengthComponent(page.locator('form'));
   }
 

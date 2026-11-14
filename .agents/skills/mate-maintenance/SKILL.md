@@ -29,16 +29,28 @@ This skill governs the long-term architectural health of the test automation cod
 
 ## 🔍 M.A.T.E. Anti-Pattern & Smell Detection Rules
 
-When auditing `tests/` and `src/` (or executing `npx mate-sdt audit`), scan for these six violation categories:
+When auditing `tests/` and `src/` (or executing `npx mate-sdt audit`), scan for these core architectural violations:
 
 | Violation Code | Anti-Pattern | Detection Heuristic | Severity |
 | :--- | :--- | :--- | :---: |
 | **`MATE-ANTI-01`** | **Arbitrary Sleeps (Commandment #4)** | `waitForTimeout(`, `Thread.sleep(`, `time.sleep(`, `.pause(` | 🔴 **Critical** |
 | **`MATE-ANTI-02`** | **Committed Focus/Skip Locks** | `test.only(`, `describe.only(`, `it.only(` left in test files | 🔴 **Critical** |
-| **`MATE-ANTI-03`** | **DIP Violation (Hard Instantiation)** | `new [A-Z]\w*Page\(` inside `*.spec.ts` instead of fixture injection | 🟡 **High** |
-| **`MATE-ANTI-04`** | **Cosmetic / Weak Assertions** | `toBeDefined()`, `not.toBeNull()` as the sole oracle without value/schema checks | 🟡 **High** |
+| **`MATE-ANTI-03`** | **DIP Violation (Hard Instantiation)** | `new [A-Z]\w*Page\(` inside `*.spec.ts` instead of fixture injection | 🔴 **Critical** |
+| **`MATE-ANTI-04`** | **Cosmetic / Weak Assertions** | `toBeDefined()`, `not.toBeNull()` as the sole oracle without value/schema checks | 🟡 **Medium** |
 | **`MATE-ANTI-05`** | **Fragile DOM Selectors** | Deep XPath (`//div/div[3]`), `:nth-child`, or dynamic CSS class chains inside specs | 🟡 **Medium** |
-| **`MATE-ANTI-06`** | **Hardcoded Secrets / Credentials** | Literal passwords, bearer tokens, or API keys inside test files | 🔴 **Critical** |
+| **`MATE-ANTI-06`** | **Permissive Discrepancy Regex (Silent Greenwashing)** | `toContainText(/A\|B/)`, `toHaveURL(/A\|B/)` to mask copy/behavior drift | 🟡 **High** |
+| **`MATE-ANTI-07`** | **Bloated Page Object (Single-Case Assertions)** | `assertDuplicateEmailStrict()`, `assertMissingField()` hardcoding expectations | 🟡 **Medium** |
+| **`MATE-ANTI-08`** | **Direct Locators & Actions in Specs (POM & SRP Violation)** | `page.locator()`, `page.getBy*()`, `page.goto()`, `page.fill/click()` in specs | 🔴 **Critical** |
+
+---
+
+## 🧹 Continuous Entropy & Doc-Gardening GC (`npx mate-sdt gc`)
+
+Run `npx mate-sdt gc` regularly to eliminate codebase entropy and technical debt:
+1. **Tech Debt & Entropy Tracker:** Reads and updates `.mate/exec-plans/tech-debt-tracker.md`. Agents must review and resolve any unchecked `- [ ]` tasks before concluding their turn.
+2. **Quality Scorecard:** Automatically computes and writes `docs/QUALITY_SCORE.md` with grades (`A` to `F`), mutation scores, and unmapped invariants.
+3. **Unindexed Artifact Detection:** Flags any newly created Page Objects, Component Objects, or Specs that are missing from `MATE-PROJECT-MAP.md`.
+4. **Session Pruning:** Automatically prunes expired sessions in `.mate/sessions/` past their 24h TTL.
 
 ---
 
@@ -57,3 +69,16 @@ The CLI command `npx mate-sdt audit` computes a deterministic score starting fro
 
 *   **Automated Static Health Audit:** `npx mate-sdt audit [dir]`
 *   **Maintenance Report Template:** [`resources/maintenance-report.template.md`](./resources/maintenance-report.template.md)
+
+---
+
+## 🔄 Black-Box Handoff & Session Isolation
+
+- **Separate Individual Histories:** Never pass raw multi-turn scratchpads or verbose upstream tool logs into this skill or out to downstream skills.
+- **Consume & Emit `mate.handoff/v1`:** Read only the compressed upstream handoff digest + `npx mate-sdt context <module>` JIT pack, and advance stages via `npx mate-sdt session advance <flow-id> --stage=<next> --to=<skill> --digest="..."`.
+- **Provenance & Hygiene:** Tag findings with `[BOOTSTRAPPED]`, `[USER_EXPLICIT]`, `[OBSERVED | ISO]`, `[INFERRED]`, or `[TBD]`; promote verified facts via `npx mate-sdt context <module> --consolidate`.
+
+## Zero-Assumption Escalation & Sub-Agent Isolation Protocol
+
+- **Ask, Never Guess (`STATUS: BLOCKED_ON_USER_INPUT`):** Inspect local context (`MATE-PROJECT-MAP.md`, `specs/`, code) and live browser/API responses first. Never invent business thresholds, auth boundaries, or SLA numbers. Tag any genuine requirement gap as `[TBD: <exact question for PO/Dev/QA>]` inside `## Open Questions for Human QA`, finish all unblocked work, and halt when `npx mate-sdt validate` or `npx mate-sdt gate` returns `STATUS: BLOCKED_ON_USER_INPUT` to ask the human.
+- **Sub-Agent Context Isolation (`--subagent` & `mate.handoff/v1`):** When delegating to a sub-agent or running a multi-stage pipeline (Reader/Extractor -> Spec Scorer -> Code Writer -> Independent Reviewer), build a scoped prompt via `npx mate-sdt context <module> --subagent <skill-name>` (`.mate/subagent-prompt-<module>-<skill>.md`). Pass only the structured `mate.handoff/v1` digest between stages (or run `--compact` in single-agent IDEs) so raw exploratory noise never pollutes downstream context windows.

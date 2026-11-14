@@ -12,8 +12,7 @@ This living document is the **single source of truth** for AI coding agents and 
 - **Primary Language:** `TypeScript` *(or Java / Python — see stack references)*
 - **UI / E2E Framework:** `Playwright (@playwright/test)`
 - **API / Contract Framework:** `Playwright APIRequestContext / SuperTest`
-- **Performance / NFR Engine:** `Grafana k6 (via rootless Podman)`
-- **Mutation Testing Engine:** `Stryker Mutator (via rootless Podman, threshold >= 85%)`
+- **Performance / NFR Engine:** `Grafana k6 (via npx mate-sdt k6: Podman, Docker, or native host)`
 - **Environments:**
   - `local / dev`: `http://localhost:3000` (Max k6 VUs: `50`)
   - `staging`: `https://staging.example.com` (Max k6 VUs: `500`)
@@ -50,6 +49,9 @@ Non-negotiable mathematical and business rules that must never be violated under
 
 ### ✅ Agents MUST Follow:
 - **Specs First:** Never generate test automation without an approved or reviewable `specs/[module].mate-spec.md`.
+- **Crash / Stack-Trace Entry Point:** Any pasted stack trace, Playwright timeout, or HTTP `4xx/5xx` error routes immediately to `mate-triage` + `npx mate-sdt heal` (5-Class Heal vs. Quarantine Matrix).
+- **Sessions vs. Memory:** Keep ephemeral flow logs in `.mate/sessions/` & `.mate/scratchpad-*.md`; promote verified facts via `npx mate-sdt context <module> --consolidate`.
+- **Provenance Hierarchy:** Enforce `[BOOTSTRAPPED] > [USER_EXPLICIT] > [OBSERVED | ISO-timestamp] > [INFERRED] / [TBD]`. Never place `[INFERRED]` or `[TBD]` inside `<invariants>` or Page/Component Objects.
 - **Dependency Inversion (DIP):** Inject Page Objects and API clients via fixtures (`test.extend()`).
 - **Semantic Locators:** Prioritize `getByRole`, `getByLabel`, `getByTestId`.
 - **Handling Uncertainty:** Never guess SLAs, auth flows, or undocumented business rules. Ask the user or mark `[TBD: needs clarification on X]` with confidence level (`Observed` vs. `Inferred`).
@@ -65,12 +67,15 @@ Non-negotiable mathematical and business rules that must never be violated under
 
 | Operation | Command |
 | :--- | :--- |
+| **Assemble 3-Bucket JIT Context Pack** | `npx mate-sdt context <module> [--compact] [--consolidate]` |
+| **Manage Session & Black-Box Handoffs** | `npx mate-sdt session <start|event|advance|list|prune>` |
+| **Compress Crash & Self-Heal / Quarantine** | `npx mate-sdt heal [target] [--last] [--verify]` |
 | **Validate M.A.T.E. Specs** | `npx mate-sdt validate` |
 | **Audit Test Suite Health (A–F)** | `npx mate-sdt audit` |
 | **Run E2E & API Tests** | `npx playwright test` |
 | **Run P0 Smoke Invariants** | `npx playwright test --grep @p0` |
-| **Run Mutation Suite (Podman)** | `npx mate-sdt mutate` |
-| **Run k6 Performance Suite (Podman)** | `npx mate-sdt k6 tests/nfr/load.k6.js` |
+| **Run Mutation Suite** | `npx mate-sdt mutate` |
+| **Run k6 Performance Suite** | `npx mate-sdt k6 tests/nfr/load.k6.js` |
 | **Create Exploratory Charter** | `npx mate-sdt charter <module>` |
 | **Create Bug Report** | `npx mate-sdt bug <module>` |
 | **Create Release Waiver** | `npx mate-sdt waiver <module>` |
@@ -81,7 +86,10 @@ Non-negotiable mathematical and business rules that must never be violated under
 
 - **Latest Release Verdict:** `[PASS]` | Sprint: `Sprint-01` | Date: `YYYY-MM-DD`
 - **Test Suite Health Score:** `A` (verified via `npx mate-sdt audit`)
-- **Mutation Testing Score:** `87.5%` (Stryker Mutator via Podman, threshold `>= 85%`)
 - **Active Release Waivers:** `None` (`./specs/waivers/`)
 - **Identified Gaps & Flakiness Radar:**
   - *None recorded yet. (`mate-triage` and `mate-maintenance` append discovered gaps here).*
+
+<!-- MATE-MEMORY:global:START -->
+<!-- Canonical consolidated memory entries promoted via `npx mate-sdt context --consolidate` -->
+<!-- MATE-MEMORY:global:END -->

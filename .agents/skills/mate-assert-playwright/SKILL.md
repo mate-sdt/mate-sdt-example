@@ -51,6 +51,28 @@ This skill governs **Pillar A (Assert — UI Architecture)** of the M.A.T.E. Met
     ```
 4.  **Express Prohibition of Arbitrary Sleeps:**  
     In M.A.T.E., `page.waitForTimeout()` is strictly forbidden (`MATE-ANTI-01`). Every assertion must use auto-retrying web-first assertions: `expect(locator).toBeVisible()`, `expect(locator).toHaveText()`, `expect(locator).toHaveValue()`.
+5.  **Absolute Prohibition of Direct `page` Locators & Actions in Test Specs (`MATE-ANTI-08` CRITICAL):**  
+    Test specs (`tests/**/*.spec.ts`) must **NEVER** contain direct locators (`page.locator()`, `page.getByRole()`, `page.getByTestId()`, `page.getByLabel()`, `page.getByText()`, `page.getByPlaceholder()`, etc.) or raw browser actions (`page.goto()`, `page.click()`, `page.fill()`, `page.selectOption()`).
+    - **Never inject `{ page }` into test specs just to bypass creating a Page Object.** If a screen, form, or modal lacks a Page Object (e.g. registration, checkout steps, admin dashboard), scaffold the class under `src/pages/*.page.ts` extending `BasePage` and wire it into `src/fixtures/mate.fixtures.ts`.
+    - Violating this rule triggers `MATE-ANTI-08` (`CRITICAL`), which immediately fails `GATE-04-SOLID-AUDIT` with exit code 1.
+
+    ❌ **FORBIDDEN (Worst Practice — Hard Fails GATE-04):**
+    ```typescript
+    test('SMOKE-04: User registration creates a customer', async ({ page, loginPage }) => {
+      await page.goto('/auth/register');
+      await page.getByTestId('first-name').fill('Jane');
+      await page.getByTestId('register-submit').click();
+    });
+    ```
+
+    ✅ **M.A.T.E. SOLID SPEC (Passes GATE-04):**
+    ```typescript
+    test('SMOKE-04: User registration creates a customer', async ({ registerPage, loginPage }) => {
+      await registerPage.open();
+      await registerPage.registerCustomer({ firstName: 'Jane', ... });
+      await loginPage.assertUrl(/account/);
+    });
+    ```
 
 ---
 
@@ -181,36 +203,36 @@ Playwright's default documentation recommends configuring authentication via sep
 
 In M.A.T.E., we solve this by injecting pre-authenticated, isolated browser contexts via **Dependency Inversion Fixtures (`test.extend()`)** backed by `storageState` JSON files (`playwright/.auth/*.json`):
 
-#### 1. Static Role Fixtures (`adminPage`, `customerPage`)
+#### 1. Static Role Fixtures (`adminUsersPage`, `customerOrdersPage`)
 Tests declare exactly the role contexts they need:
 ```typescript
 import { test, expect } from '../src/fixtures/mate.fixtures';
 
-test('Admin unlocks user and Customer can log in immediately [INV-03]', async ({ adminPage, customerPage }) => {
-  // adminPage runs with admin storageState
-  await adminPage.goto('/admin/users');
-  await adminPage.getByRole('button', { name: /unlock customer/i }).click();
+test('Admin unlocks user and Customer can log in immediately [INV-03]', async ({ adminUsersPage, customerOrdersPage }) => {
+  // adminUsersPage runs with admin storageState and encapsulates locators
+  await adminUsersPage.open();
+  await adminUsersPage.unlockCustomer('Jane Doe');
 
-  // customerPage runs with customer storageState in an isolated context
-  await customerPage.goto('/account/orders');
-  await expect(customerPage.getByTestId('order-history')).toBeVisible();
+  // customerOrdersPage runs with customer storageState in an isolated context
+  await customerOrdersPage.open();
+  await expect(customerOrdersPage.orderHistoryTable).toBeVisible();
 });
 ```
 
 #### 2. Cross-Tenant Security & Isolation Testing (Pillar T Synergy)
-Using the dynamic tenant factory fixture `asTenant(tenantId, role)`:
+Using the dynamic tenant factory fixture `asTenant(tenantId, role)` returning strongly-typed Page Objects:
 ```typescript
 test('THR-SEC-01: Cross-Tenant Isolation - Tenant B cannot read Tenant A order', async ({ asTenant }) => {
-  const { page: tenantAPage } = await asTenant('tenant-alpha', 'customer');
-  const { page: tenantBPage } = await asTenant('tenant-beta', 'customer');
+  const { invoicesPage: tenantAInvoices } = await asTenant('tenant-alpha', 'customer');
+  const { invoicesPage: tenantBInvoices } = await asTenant('tenant-beta', 'customer');
 
   // Tenant A creates an invoice
-  await tenantAPage.goto('/invoices');
-  const invoiceId = await tenantAPage.getByTestId('latest-invoice-id').innerText();
+  await tenantAInvoices.open();
+  const invoiceId = await tenantAInvoices.getLatestInvoiceId();
 
   // Tenant B attempts direct access (IDOR / BOLA probe)
-  await tenantBPage.goto(`/invoices/${invoiceId}`);
-  await expect(tenantBPage.getByTestId('error-403-forbidden')).toBeVisible();
+  await tenantBInvoices.open(invoiceId);
+  await expect(tenantBInvoices.forbiddenAlert).toBeVisible();
 });
 ```
 
@@ -225,3 +247,16 @@ Never perform repetitive UI logins in `beforeEach`. Populate `playwright/.auth/*
 *   **Component Object Model Template:** [`resources/component.template.ts`](./resources/component.template.ts)
 *   **DIP Test Fixtures Template:** [`resources/fixtures.template.ts`](./resources/fixtures.template.ts)
 *   **`@playwright/cli` Codegen & Mocking Guides:** Activate **`mate-pw-codegen`** (`skills/mate-pw-codegen/SKILL.md`).
+
+---
+
+## 🔄 Black-Box Handoff & Session Isolation
+
+- **Separate Individual Histories:** Never pass raw multi-turn scratchpads or verbose upstream tool logs into this skill or out to downstream skills.
+- **Consume & Emit `mate.handoff/v1`:** Read only the compressed upstream handoff digest + `npx mate-sdt context <module>` JIT pack, and advance stages via `npx mate-sdt session advance <flow-id> --stage=<next> --to=<skill> --digest="..."`.
+- **Provenance & Hygiene:** Tag findings with `[BOOTSTRAPPED]`, `[USER_EXPLICIT]`, `[OBSERVED | ISO]`, `[INFERRED]`, or `[TBD]`; promote verified facts via `npx mate-sdt context <module> --consolidate`.
+
+## Zero-Assumption Escalation & Sub-Agent Isolation Protocol
+
+- **Ask, Never Guess (`STATUS: BLOCKED_ON_USER_INPUT`):** Inspect local context (`MATE-PROJECT-MAP.md`, `specs/`, code) and live browser/API responses first. Never invent business thresholds, auth boundaries, or SLA numbers. Tag any genuine requirement gap as `[TBD: <exact question for PO/Dev/QA>]` inside `## Open Questions for Human QA`, finish all unblocked work, and halt when `npx mate-sdt validate` or `npx mate-sdt gate` returns `STATUS: BLOCKED_ON_USER_INPUT` to ask the human.
+- **Sub-Agent Context Isolation (`--subagent` & `mate.handoff/v1`):** When delegating to a sub-agent or running a multi-stage pipeline (Reader/Extractor -> Spec Scorer -> Code Writer -> Independent Reviewer), build a scoped prompt via `npx mate-sdt context <module> --subagent <skill-name>` (`.mate/subagent-prompt-<module>-<skill>.md`). Pass only the structured `mate.handoff/v1` digest between stages (or run `--compact` in single-agent IDEs) so raw exploratory noise never pollutes downstream context windows.

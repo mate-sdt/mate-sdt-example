@@ -13,6 +13,10 @@ description: >-
 
 This skill governs **Phase 3 of `@playwright/cli` in M.A.T.E.**: using multi-session browser orchestration for **Pillar T concurrency attacks**, capturing **microsecond forensic traces and 60fps WebM videos** for **Pillar E charters and Day-2 Bug Reports**, and attaching visual proof to Pull Requests and issue trackers.
 
+> [!NOTE]
+> **Operating Without `@playwright/cli` (Fallback Mode):**  
+> If `@playwright/cli` is not installed, multi-actor concurrency tests are implemented directly in automated code using standard `@playwright/test` parallel browser contexts (`await browser.newContext()`) with `Promise.all()` in `tests/threats/*.spec.ts`. Forensic tracing and video recording are handled natively via `playwright.config.ts` (`use: { trace: 'retain-on-failure', video: 'retain-on-failure' }`).
+
 ---
 
 ## 🔗 Skill Synergy & Handoff Protocol
@@ -70,3 +74,23 @@ Load these references on demand for multi-session setups, trace analysis, video 
 * **[Execution Tracing & Forensic Triage (`tracing.md`)](./references/tracing.md)** — Capturing traces and classifying failures into M.A.T.E.'s 4 root-cause buckets (Locator Drift, Timing, Environment, Real Bug).
 * **[Video Recording & Screencast Evidence (`video-recording.md`)](./references/video-recording.md)** — Recording 60fps WebM videos with action overlays and chapter cards without introducing `waitForTimeout` into test suites.
 * **[Pull Request & Bug Report Attachments (`pr-attachments.md`)](./references/pr-attachments.md)** — Attaching screenshots, traces, and videos to GitHub PRs (`gh pr create --attach`) and M.A.T.E. Bug Reports.
+
+---
+
+## 🔄 Black-Box Handoff & Session Isolation
+
+- **Separate Individual Histories:** Never pass raw multi-turn scratchpads or verbose upstream tool logs into this skill or out to downstream skills.
+- **Consume & Emit `mate.handoff/v1`:** Read only the compressed upstream handoff digest + `npx mate-sdt context <module>` JIT pack, and advance stages via `npx mate-sdt session advance <flow-id> --stage=<next> --to=<skill> --digest="..."`.
+- **Provenance & Hygiene:** Tag findings with `[BOOTSTRAPPED]`, `[USER_EXPLICIT]`, `[OBSERVED | ISO]`, `[INFERRED]`, or `[TBD]`; promote verified facts via `npx mate-sdt context <module> --consolidate`.
+
+---
+
+## 🔎 Targeted Single-Failure Recon for `npx mate-sdt heal`
+
+- **ARIA Snapshot (`<= 800` tokens):** `npx playwright-cli open <url>` + `npx playwright-cli snapshot` scoped to the failing region.
+- **Network & Trace Digest:** `npx playwright-cli network` + `tracing-start/stop` to isolate unawaited HTTP calls (`SYNC_OR_FLAKY_RACE`) vs. 500/invariant violations (`REAL_PRODUCT_BUG`).
+
+## Zero-Assumption Escalation & Sub-Agent Isolation Protocol
+
+- **Ask, Never Guess (`STATUS: BLOCKED_ON_USER_INPUT`):** Inspect local context (`MATE-PROJECT-MAP.md`, `specs/`, code) and live browser/API responses first. Never invent business thresholds, auth boundaries, or SLA numbers. Tag any genuine requirement gap as `[TBD: <exact question for PO/Dev/QA>]` inside `## Open Questions for Human QA`, finish all unblocked work, and halt when `npx mate-sdt validate` or `npx mate-sdt gate` returns `STATUS: BLOCKED_ON_USER_INPUT` to ask the human.
+- **Sub-Agent Context Isolation (`--subagent` & `mate.handoff/v1`):** When delegating to a sub-agent or running a multi-stage pipeline (Reader/Extractor -> Spec Scorer -> Code Writer -> Independent Reviewer), build a scoped prompt via `npx mate-sdt context <module> --subagent <skill-name>` (`.mate/subagent-prompt-<module>-<skill>.md`). Pass only the structured `mate.handoff/v1` digest between stages (or run `--compact` in single-agent IDEs) so raw exploratory noise never pollutes downstream context windows.

@@ -2,17 +2,25 @@
 name: mate-flow-performance
 description: >-
   End-to-End M.A.T.E. Performance & NFR Workflow: Translates <performance_oracles> SLAs
-  from MATE-SPEC.md into Grafana k6 load/stress/spike scripts and executes them inside
-  rootless Podman containers (npx mate-sdt k6).
+  from MATE-SPEC.md into Grafana k6 load/stress/spike scripts and executes them via
+  container runners (Podman/Docker) or native host (npx mate-sdt k6).
 ---
 
-# ⚡ E2E Workflow: Performance Oracles with k6 & Podman (`/mate-flow-performance`)
+# ⚡ E2E Workflow: Performance Oracles with k6 (`/mate-flow-performance`)
 
 Execute this workflow to verify Non-Functional Requirements (latency SLAs, throughput, error rates, and spike resilience).
 
 ---
 
 ## Step 1: Verify Performance Oracles & VU Limits (`mate-performance-k6`)
+
+> ⚠️ **Pre-Flight Check (Engine Readiness):**  
+> Check if a container engine (Podman or Docker) or native `k6` is available in PATH. If NEITHER is installed, **STOP IMMEDIATELY** and ask the user:  
+> *"We don't have Grafana k6 or a container engine (Podman/Docker) available in this environment. How would you like to proceed?"*  
+> 1. **(Recommended) Install native `k6`:** `winget install k6` (Windows), `brew install k6` (macOS), `sudo apt install k6` (Linux).  
+> 2. **Install a container runner runtime:** `winget install RedHat.Podman-Desktop` / `brew install podman` or install Docker Desktop.  
+> 3. **Skip Performance Testing for now:** Author the script and defer execution to CI/CD pipelines.
+
 1. Read `MATE-PROJECT-MAP.md` and `specs/[module].mate-spec.md`.
 2. Confirm `<invariants>` / `<performance_oracles>` define explicit SLAs (e.g., `P95 <= 400ms`, `Error Rate < 1%`, target RPS/VUs) and environment VU caps. If missing, ask the user—never guess load targets.
 
@@ -21,9 +29,31 @@ Execute this workflow to verify Non-Functional Requirements (latency SLAs, throu
 2. Create `tests/nfr/[module].k6.js` based on `skills/mate-performance-k6/resources/k6-load.template.js`.
 3. Map every SLA to deterministic k6 `thresholds` (`http_req_duration`, `http_req_failed`, custom `Trend`/`Rate` metrics) so k6 exits with a non-zero code if any oracle breaks.
 
-## Step 3: Execute in Rootless Podman (`npx mate-sdt k6`)
-1. Run the containerized k6 suite:
+## Step 3: Execute via Dual-Engine Runner (`npx mate-sdt k6`)
+1. Run the k6 suite (automatically executes via Podman/Docker container runner if available, or falls back to native host `k6`):
    ```bash
    npx mate-sdt k6 tests/nfr/[module].k6.js
    ```
 2. Record the P95/P99 latency results and pass/fail status in `MATE-PROJECT-MAP.md`.
+
+---
+
+## 🧵 Session Workbench & Black-Box Handoff Protocol
+
+1. **Start Isolated Session:** `npx mate-sdt session start <flow-id> --module=<module> --stage=<initial-stage>`
+2. **Record Raw Events (Window $K=5$):** `npx mate-sdt session event <flow-id> "[OBSERVED | ISO] ..."`
+3. **Stage Transition (Auto-Compaction + `mate.handoff/v1`):** `npx mate-sdt session advance <flow-id> --stage=<next> --to=<next-skill> --digest="..."`
+4. **JIT Context & Consolidation:** Run `npx mate-sdt context <module>` before each stage and `npx mate-sdt context <module> --consolidate` + `npx mate-sdt gate` at completion.
+
+---
+
+## ⚙️ Execution Plan, Closed-Loop Gate & Independent Review
+
+1. **Persist Execution Plan:** Create/update `.mate/exec-plans/active/<flow-id>.md` (move to `.mate/exec-plans/completed/` upon completion).
+2. **Closed-Loop Verification:** Run `npx mate-sdt gate --loop` (max 5 iterations) and `npx mate-sdt gc` to refresh `docs/QUALITY_SCORE.md`.
+3. **Independent Agent Review Pass:** Trigger an independent reviewer pass (`mate-core` / `mate-maintenance`) to audit the diff against `specs/<module>.mate-spec.md` and `docs/QUALITY_SCORE.md`.
+
+## Zero-Assumption Escalation & Sub-Agent Isolation Protocol
+
+- **Ask, Never Guess (`STATUS: BLOCKED_ON_USER_INPUT`):** Inspect local context (`MATE-PROJECT-MAP.md`, `specs/`, code) and live browser/API responses first. Never invent business thresholds, auth boundaries, or SLA numbers. Tag any genuine requirement gap as `[TBD: <exact question for PO/Dev/QA>]` inside `## Open Questions for Human QA`, finish all unblocked work, and halt when `npx mate-sdt validate` or `npx mate-sdt gate` returns `STATUS: BLOCKED_ON_USER_INPUT` to ask the human.
+- **Sub-Agent Context Isolation (`--subagent` & `mate.handoff/v1`):** When delegating to a sub-agent or running a multi-stage pipeline (Reader/Extractor -> Spec Scorer -> Code Writer -> Independent Reviewer), build a scoped prompt via `npx mate-sdt context <module> --subagent <skill-name>` (`.mate/subagent-prompt-<module>-<skill>.md`). Pass only the structured `mate.handoff/v1` digest between stages (or run `--compact` in single-agent IDEs) so raw exploratory noise never pollutes downstream context windows.
